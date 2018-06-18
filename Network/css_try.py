@@ -8,7 +8,6 @@ def initialize(N):
     G = nx.barabasi_albert_graph(N, 2)
     color_map = [0] * N
     for node in G.nodes():
-        #G.node[node]['power'] = random.randint(-1, 1)
         G.node[node]['power'] = 0
         G.node[node]['status'] = 'alive'
     return G, color_map
