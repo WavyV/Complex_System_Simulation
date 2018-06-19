@@ -14,7 +14,8 @@ class CA(object):
                  beta=1,
                  energy_max=10,
                  energy_min=10,
-                 verbose=True):
+                 verbose=True,
+                 take_panels_if_died = False):
         """
         Initializes the cellular automata
         :param n: the grid size is (n x n). Living cells: (n-2) x (n-2).
@@ -58,6 +59,9 @@ class CA(object):
         # Neighbours
         self.friend_n = numpy.zeros([n, n])
 
+        # steal
+        self.take_panels_if_died = take_panels_if_died
+
         # STATS
         self.STAT_alloc_energy = numpy.zeros(max_step)
         self.STAT_alloc_panels = numpy.zeros(max_step)
@@ -97,8 +101,9 @@ class CA(object):
         # Consume energy
         self.consume()
 
-        # Get solar panels from neighbours
-        self.get_panels()
+        # Get solar panels from neighbours if steal = True
+        if self.take_panels_if_died:
+            self.get_panels()
 
         # Record stats
         self.STAT_alloc_energy[self.step_num] = numpy.sum(self.energy_new_alloc)
@@ -203,46 +208,48 @@ class CA(object):
         self.alpha += self.alpha_new_alloc
         self.alpha[self.energy == 0] = 0
 
+if __name__ == "__main__":
 
-# Run CA
-c = CA(n=10,
-       dt=0.1,
-       max_step=1000,
-       energy_start=3,
-       alpha_min=0,
-       alpha_max=2,
-       beta=1,
-       energy_max=10,
-       energy_min=0,
-       verbose=True)
+    # Run CA
+    c = CA(n = 10,
+           dt = 0.1,
+           max_step = 100,
+           energy_start = 3,
+           alpha_min = 0,
+           alpha_max = 2,
+           beta = 1,
+           energy_max = 10,
+           energy_min = 0,
+           verbose = True,
+           take_panels_if_died = False)
 
-# Draw figures
-for i in range(100):
-    c.step()
+           #
 
-# visualize the results
-plt.imshow(c.grid[:,:,95])
-plt.show()
+    # Draw figures
+    for i in range(c.max):
+        c.step()
 
-print(c.n)
+    # print initial grid
+    plt.imshow(c.grid[:,:,0], vmin=0, vmax=10)
+    plt.show()
 
-# animate the results
-fig = plt.figure()
-data = numpy.zeros((c.n, c.n))
-im = plt.imshow(data, vmin=0, vmax=10)
-plt.title(0)
+    # animate the results
+    fig = plt.figure()
+    data = numpy.zeros((c.n, c.n))
+    im = plt.imshow(data, vmin=0, vmax=10)
+    plt.title(0)
 
-def init():
-    im.set_data(data)
-    return im,
+    def init():
+        im.set_data(data)
+        return im,
 
-def animate(i):
-    im.set_data(c.grid[:,:,i])
-    plt.title('t = %.3f' % float(i))
-    return im,
+    def animate(i):
+        im.set_data(c.grid[:,:,i])
+        plt.title('t = %.3f' % float(i))
+        return im,
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, 100), interval=1, blit=False)
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, 100), interval=1, blit=False)
 
-# anim.save(f'results/animation_random30_f_{f}__k_{k}.mp4', fps=200)
+    # anim.save(f'results/animation_random30_f_{f}__k_{k}.mp4', fps=200)
 
-plt.show()
+    plt.show()
