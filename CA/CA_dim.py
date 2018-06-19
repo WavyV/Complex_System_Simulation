@@ -58,6 +58,9 @@ class CA(object):
         # Neighbours
         self.friend_n = numpy.zeros([n, n])
 
+        # Saved cells
+        self.saved_cells = numpy.zeros([n, n])
+
         # STATS
         self.STAT_alloc_energy = numpy.zeros(max_step)
         self.STAT_alloc_panels = numpy.zeros(max_step)
@@ -93,6 +96,7 @@ class CA(object):
 
         # Allocate energy
         self.get_energy()
+
 
         # Consume energy
         self.consume()
@@ -158,6 +162,8 @@ class CA(object):
         """
         # Allocation is uniform among the neighbours
         self.energy_new_alloc = numpy.zeros([self.n, self.n])
+        self.saved_cells = numpy.zeros([self.n, self.n])
+
         energy_plus = numpy.maximum(0, self.energy - self.energy_min)
         energy_per_neighbour = numpy.zeros_like(energy_plus)
         energy_per_neighbour[self.friend_n > 0] = energy_plus[self.friend_n > 0] / self.friend_n[
@@ -170,10 +176,11 @@ class CA(object):
                                                   energy_per_neighbour[i, j - 1] + energy_per_neighbour[i, j + 1]
 
                     # Check if without this amount, it would stop working
-                    self.STAT_saved[self.step_num] += 1.0*((self.energy[i, j]<=self.beta) and
+                    self.saved_cells[i, j] = 1.0*((self.energy[i, j]<=self.beta) and
                                                            (self.energy[i, j] - energy_plus[i, j] +
                                                             self.energy_new_alloc[i, j]) > self.beta)
 
+                    self.STAT_saved[self.step_num] += self.saved_cells[i, j]
                     # Get energy
                     self.energy[i, j] = self.energy[i, j] - energy_plus[i, j] + self.energy_new_alloc[i, j]
 
