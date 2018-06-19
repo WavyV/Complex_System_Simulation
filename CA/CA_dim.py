@@ -107,8 +107,8 @@ class CA(object):
         self.consume()
 
         # Get solar panels from neighbours if steal = True
-        if self.take_panels_if_died:
-            self.get_panels()
+
+        self.get_panels()
 
         # Record stats
         self.STAT_alloc_energy[self.step_num] = numpy.sum(self.energy_new_alloc)
@@ -200,22 +200,24 @@ class CA(object):
         self.energy[self.energy > self.energy_max] = self.energy_max
 
     def get_panels(self):
+        if self.take_panels_if_died:
+            self.alpha_new_alloc = numpy.zeros([self.n, self.n])
+            alpha_per_neighbour = numpy.zeros_like(self.alpha_new_alloc)
+            alpha_per_neighbour[self.friend_n > 0] = self.alpha[self.friend_n > 0] / self.friend_n[
+                self.friend_n > 0]
+            # Only if there is no energy
+            alpha_per_neighbour[self.energy > 0] = 0
 
-        self.alpha_new_alloc = numpy.zeros([self.n, self.n])
-        alpha_per_neighbour = numpy.zeros_like(self.alpha_new_alloc)
-        alpha_per_neighbour[self.friend_n > 0] = self.alpha[self.friend_n > 0] / self.friend_n[
-            self.friend_n > 0]
-        # Only if there is no energy
-        alpha_per_neighbour[self.energy > 0] = 0
+            # If it has only one neighbour, it takes all panels
+            for i in numpy.arange(1, self.n - 1):
+                for j in numpy.arange(1, self.n - 1):
+                    self.alpha_new_alloc[i, j] = alpha_per_neighbour[i - 1, j] + alpha_per_neighbour[i + 1, j] + \
+                                                 alpha_per_neighbour[i, j - 1] + alpha_per_neighbour[i, j + 1]
 
-        # If it has only one neighbour, it takes all panels
-        for i in numpy.arange(1, self.n - 1):
-            for j in numpy.arange(1, self.n - 1):
-                self.alpha_new_alloc[i, j] = alpha_per_neighbour[i - 1, j] + alpha_per_neighbour[i + 1, j] + \
-                                             alpha_per_neighbour[i, j - 1] + alpha_per_neighbour[i, j + 1]
+            self.alpha += self.alpha_new_alloc
 
-        self.alpha += self.alpha_new_alloc
         self.alpha[self.energy == 0] = 0
+
 
 if __name__ == "__main__":
 
@@ -230,7 +232,7 @@ if __name__ == "__main__":
            energy_max = 10,
            energy_min = 0,
            verbose = True,
-           take_panels_if_died = False)
+           take_panels_if_died = True)
 
 
     # Draw figures
@@ -253,20 +255,24 @@ if __name__ == "__main__":
 
     ax1 = plt.subplot(2,2,1)
     im_energy = ax1.imshow(data_imshow, vmin=0, vmax=10)
+    ax1.set_title("Energy levels")
 
     ax2 = plt.subplot(2,2,2)
     ax2.set_xlim([0, c.step_num_max])
     ax2.set_ylim([0,1])
+    ax2.set_title("Total active")
     ax_active, = ax2.plot(data_figure)
 
     ax3 = plt.subplot(2,2,3)
+    ax3.set_title("Alpha")
     im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=1)
 
     ax4 = plt.subplot(2,2,4)
     ax4.set_xlim([0, c.step_num_max])
-    ax4.set_ylim([0,1])
+    ax4.set_ylim([0,(c.n-1)**2])
     ax_saved, = ax4.plot(data_figure)
-
+    ax4.set_title("Saved")
+    plt.tight_layout()
     # plt.title(0)
 
     def init():
