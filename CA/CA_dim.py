@@ -74,6 +74,7 @@ class CA(object):
         self.STAT_saved = numpy.zeros(max_step)
 
         self.grid = numpy.zeros([n, n, max_step])
+        self.grid_prod = numpy.zeros([n, n, max_step])
 
         # Initial stats
         self.STAT_saved[0] = 0
@@ -85,6 +86,7 @@ class CA(object):
         self.STAT_total_alpha[0] = numpy.sum(self.alpha)
 
         self.grid[:,:,0] = self.energy
+        self.grid_prod[:,:,0] = self.energy_new_prod
 
     def step(self):
         # Time
@@ -117,6 +119,7 @@ class CA(object):
         self.STAT_total_alpha[self.step_num] = numpy.sum(self.alpha)
 
         self.grid[:,:, self.step_num] = self.energy
+        self.grid_prod[:,:, self.step_num] = self.energy_new_prod
 
         return self.energy
 
@@ -229,30 +232,59 @@ if __name__ == "__main__":
            verbose = True,
            take_panels_if_died = False)
 
-           #
 
     # Draw figures
-    for i in range(c.max):
+    for i in range(c.step_num_max-1):
         c.step()
 
+    print(len(numpy.arange(10)))
+    print(len(c.STAT_total_active[:10]))
+
     # print initial grid
-    plt.imshow(c.grid[:,:,0], vmin=0, vmax=10)
-    plt.show()
+    # plt.imshow(c.grid[:,:,0], vmin=0, vmax=10)
+    # plt.show()
 
     # animate the results
+    # initialize figure
     fig = plt.figure()
-    data = numpy.zeros((c.n, c.n))
-    im = plt.imshow(data, vmin=0, vmax=10)
-    plt.title(0)
+
+    data_figure = numpy.zeros(c.step_num_max)
+    data_imshow = numpy.zeros((c.n, c.n))
+
+    ax1 = plt.subplot(2,2,1)
+    im_energy = ax1.imshow(data_imshow, vmin=0, vmax=10)
+
+    ax2 = plt.subplot(2,2,2)
+    ax2.set_xlim([0, c.step_num_max])
+    ax2.set_ylim([0,1])
+    ax_active, = ax2.plot(data_figure)
+
+    ax3 = plt.subplot(2,2,3)
+    im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=1)
+
+    ax4 = plt.subplot(2,2,4)
+    ax4.set_xlim([0, c.step_num_max])
+    ax4.set_ylim([0,1])
+    ax_saved, = ax4.plot(data_figure)
+
+    # plt.title(0)
 
     def init():
-        im.set_data(data)
-        return im,
+        im_energy.set_data(data_imshow)
+        ax_active.set_data(data_figure, data_figure)
+        im_alpha.set_data(data_imshow)
+        ax_saved.set_data(data_figure, data_figure)
+
+        return im_energy, ax_active, im_alpha, ax_saved
 
     def animate(i):
-        im.set_data(c.grid[:,:,i])
-        plt.title('t = %.3f' % float(i))
-        return im,
+        im_energy.set_data(c.grid[:,:,i])
+        ax_active.set_data(numpy.arange(i), c.STAT_total_active[:i])
+        im_alpha.set_data(c.grid_prod[:,:,i])
+        ax_saved.set_data(numpy.arange(i), c.STAT_saved[:i])
+
+        # fig.subtitle('t = %.3f' % float(i))
+        return im_energy, ax_active, im_alpha, ax_saved
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, 100), interval=1, blit=False)
 
