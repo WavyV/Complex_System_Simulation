@@ -46,6 +46,7 @@ class CA(object):
         self.alpha = numpy.zeros([n, n])
         self.alpha[1:n - 1, 1:n - 1] = numpy.random.uniform(alpha_min, alpha_max, size=[n - 2, n - 2])
         self.alpha_new_alloc = numpy.zeros([n, n])
+        self.alpha_max = alpha_max
 
         # Beta
         self.beta = beta
@@ -68,8 +69,11 @@ class CA(object):
         self.STAT_alloc_energy = numpy.zeros(max_step)
         self.STAT_alloc_panels = numpy.zeros(max_step)
         self.STAT_total_active = numpy.zeros(max_step)
+        self.STAT_total_active_abs = numpy.zeros(max_step)
         self.STAT_total_energy = numpy.zeros(max_step)
+        self.STAT_sun = numpy.zeros(max_step)
         self.STAT_total_production = numpy.zeros(max_step)
+        self.STAT_total_consumption = numpy.zeros(max_step)
         self.STAT_total_alpha = numpy.zeros(max_step)
         self.STAT_saved = numpy.zeros(max_step)
 
@@ -81,8 +85,11 @@ class CA(object):
         self.STAT_alloc_energy[0] = 0
         self.STAT_alloc_panels[0] = 0
         self.STAT_total_active[0] = 1.0
+        self.STAT_total_active_abs[0] = self.n **2
         self.STAT_total_energy[0] = numpy.sum(self.energy)
+        self.STAT_sun[0]  = self.prod_func(1, self.t)
         self.STAT_total_production[0] = 0
+        self.STAT_total_consumption[0] = 0
         self.STAT_total_alpha[0] = numpy.sum(self.alpha)
 
         self.grid[:,:,0] = self.energy
@@ -106,16 +113,18 @@ class CA(object):
         # Consume energy
         self.consume()
 
-        # Get solar panels from neighbours if steal = True
-
+        # Get solar panels from neighbours if take_panels_if_died = True
         self.get_panels()
 
         # Record stats
         self.STAT_alloc_energy[self.step_num] = numpy.sum(self.energy_new_alloc)
         self.STAT_alloc_panels[self.step_num] = numpy.sum(self.alpha_new_alloc)
         self.STAT_total_active[self.step_num] = numpy.sum(1.0*(self.energy>0))/(self.n-2)**2
+        self.STAT_total_active_abs[self.step_num] = numpy.sum(1.0*(self.energy>0))
         self.STAT_total_energy[self.step_num] = numpy.sum(self.energy)
+        self.STAT_sun[self.step_num] = self.prod_func(1, self.t)
         self.STAT_total_production[self.step_num] = numpy.sum(self.energy_new_prod)
+        self.STAT_total_consumption[self.step_num] = numpy.sum(self.beta * self.STAT_total_active_abs)
         self.STAT_total_alpha[self.step_num] = numpy.sum(self.alpha)
 
         self.grid[:,:, self.step_num] = self.energy
@@ -130,10 +139,10 @@ class CA(object):
         """
         for i in numpy.arange(1, self.n - 1):
             for j in numpy.arange(1, self.n - 1):
-                self.friend_n[i, j] = 1 * (self.energy[i - 1, i] > 0) + \
-                                      1 * (self.energy[i + 1, i] > 0) + \
-                                      1 * (self.energy[i, i - 1] > 0) + \
-                                      1 * (self.energy[i, i + 1] > 0)
+                self.friend_n[i, j] = 1 * (self.energy[i - 1, j] > 0) + \
+                                      1 * (self.energy[i + 1, j] > 0) + \
+                                      1 * (self.energy[i, j - 1] > 0) + \
+                                      1 * (self.energy[i, j + 1] > 0)
 
     def prod_func(self, A, x):
         """
@@ -221,28 +230,29 @@ class CA(object):
 
 if __name__ == "__main__":
 
-    # Run CA
+    # initialize CA
     c = CA(n = 10,
-           dt = 0.1,
-           max_step = 100,
+           dt = 0.02,
+           max_step = 200,
            energy_start = 3,
            alpha_min = 0,
-           alpha_max = 2,
+           alpha_max = 10,
            beta = 1,
-           energy_max = 10,
-           energy_min = 0,
+           energy_max = 100,
+           energy_min = 50,
            verbose = True,
            take_panels_if_died = True)
 
-
-    # Draw figures
+    # run CA
     for i in range(c.step_num_max-1):
         c.step()
 
-    print(len(numpy.arange(10)))
-    print(len(c.STAT_total_active[:10]))
+    # Calculate ratio production over consumption and average energy per node
+    ratioPC = c.STAT_total_production / c.STAT_total_consumption
+    average_energy = c.STAT_total_energy / c.STAT_total_active_abs
+    ratioPC[0] = 0
 
-    # print initial grid
+    # # print initial grid
     # plt.imshow(c.grid[:,:,0], vmin=0, vmax=10)
     # plt.show()
 
@@ -253,46 +263,65 @@ if __name__ == "__main__":
     data_figure = numpy.zeros(c.step_num_max)
     data_imshow = numpy.zeros((c.n, c.n))
 
-    ax1 = plt.subplot(2,2,1)
-    im_energy = ax1.imshow(data_imshow, vmin=0, vmax=10)
+    ax1 = plt.subplot(3,3,1)
+    im_energy = ax1.imshow(data_imshow, vmin=0, vmax=c.energy_max)
     ax1.set_title("Energy levels")
 
-    ax2 = plt.subplot(2,2,2)
+    ax2 = plt.subplot(3,3,2)
     ax2.set_xlim([0, c.step_num_max])
     ax2.set_ylim([0,1])
     ax2.set_title("Total active")
     ax_active, = ax2.plot(data_figure)
 
-    ax3 = plt.subplot(2,2,3)
+    ax3 = plt.subplot(3,3,3)
     ax3.set_title("Alpha")
-    im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=1)
+    im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=c.alpha_max)
 
-    ax4 = plt.subplot(2,2,4)
+    ax4 = plt.subplot(3,3,4)
     ax4.set_xlim([0, c.step_num_max])
     ax4.set_ylim([0,(c.n-1)**2])
     ax_saved, = ax4.plot(data_figure)
     ax4.set_title("Saved")
     plt.tight_layout()
-    # plt.title(0)
+
+    ax5 = plt.subplot(3,3,5)
+    ax5.set_xlim([0, c.step_num_max])
+    ax5.set_ylim([0,1])
+    ax_sun, = ax5.plot(data_figure)
+    ax5.set_title("Sun")
+    plt.tight_layout()
+
+    ax6 = plt.subplot(3,3,6)
+    ax6.set_xlim([-0.01, numpy.amax(ratioPC)])
+    ax6.set_ylim([0, numpy.amax(average_energy)])
+    ax_ratio, = ax6.plot(data_figure)
+    ax6.set_title("Ratio")
+    ax6.set_xlabel('P/C')
+    ax6.set_ylabel('Average Energy per Node')
+    plt.tight_layout()
 
     def init():
         im_energy.set_data(data_imshow)
         ax_active.set_data(data_figure, data_figure)
         im_alpha.set_data(data_imshow)
         ax_saved.set_data(data_figure, data_figure)
+        ax_sun.set_data(data_figure, data_figure)
+        ax_ratio.set_data(data_figure, data_figure)
 
-        return im_energy, ax_active, im_alpha, ax_saved
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio
 
     def animate(i):
         im_energy.set_data(c.grid[:,:,i])
         ax_active.set_data(numpy.arange(i), c.STAT_total_active[:i])
         im_alpha.set_data(c.grid_prod[:,:,i])
         ax_saved.set_data(numpy.arange(i), c.STAT_saved[:i])
+        ax_sun.set_data(numpy.arange(i), c.STAT_sun[:i])
+        ax_ratio.set_data(ratioPC[:i], average_energy[:i])
 
         # fig.subtitle('t = %.3f' % float(i))
-        return im_energy, ax_active, im_alpha, ax_saved
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio
 
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, 100), interval=1, blit=False)
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, c.step_num_max), interval=1, blit=False)
 
     # anim.save(f'results/animation_random30_f_{f}__k_{k}.mp4', fps=200)
 
