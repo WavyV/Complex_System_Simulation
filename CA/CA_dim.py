@@ -188,6 +188,7 @@ class CA(object):
         self.saved_cells = numpy.zeros([self.n, self.n])
 
         energy_plus = numpy.maximum(0, self.energy - self.energy_min)
+        self.STAT_alloc_energy[self.step_num] = numpy.sum(energy_plus)
         energy_per_neighbour = numpy.zeros_like(energy_plus)
         energy_per_neighbour[self.friend_n > 0] = energy_plus[self.friend_n > 0] / self.friend_n[
             self.friend_n > 0]
@@ -288,7 +289,7 @@ if __name__ == "__main__":
     # Total active cells
     ax2 = plt.subplot(3,3,2)
     ax2.set_xlim([0, c.step_num_max])
-    ax2.set_ylim([0,1])
+    ax2.set_ylim([0,1.05])
     ax2.set_title("Total active")
     ax_active, = ax2.plot(data_figure)
 
@@ -302,13 +303,13 @@ if __name__ == "__main__":
     ax4.set_xlim([0, c.step_num_max])
     ax4.set_ylim([0,(c.n-1)**2])
     ax_saved, = ax4.plot(data_figure)
-    ax4.set_title("Saved")
+    ax4.set_title("Saved cells by distribution")
     plt.tight_layout()
 
     # Value of the sun
     ax5 = plt.subplot(3,3,5)
     ax5.set_xlim([0, c.step_num_max])
-    ax5.set_ylim([0,1])
+    ax5.set_ylim([0,1.05])
     ax_sun, = ax5.plot(data_figure)
     ax5.set_title("Sun")
     plt.tight_layout()
@@ -328,6 +329,21 @@ if __name__ == "__main__":
     im_died = ax7.imshow(data_imshow, vmin=0, vmax=1, cmap="prism")
     ax7.set_title("Died cells (green = alive)")
 
+    # Distributed energy
+    ax8 = plt.subplot(3,3,8)
+    ax8.set_xlim([0, c.step_num_max])
+    ax8.set_ylim([0, numpy.amax(c.STAT_alloc_energy)])
+    ax_distributed, = ax8.plot(data_figure)
+    ax8.set_title("Distributed energy")
+    plt.tight_layout()
+
+    # Total Energy level
+    ax9 = plt.subplot(3,3,9)
+    ax9.set_xlim([0, c.step_num_max])
+    ax9.set_ylim([0, numpy.amax(c.STAT_total_energy)])
+    ax_total_energy, = ax9.plot(data_figure)
+    ax9.set_title("Total energy level")
+    plt.tight_layout()
 
     def init():
         im_energy.set_data(data_imshow)
@@ -337,8 +353,10 @@ if __name__ == "__main__":
         ax_sun.set_data(data_figure, data_figure)
         ax_ratio.set_data(data_figure, data_figure)
         im_died.set_data(data_imshow)
+        ax_distributed.set_data(data_figure, data_figure)
+        ax_total_energy.set_data(data_figure, data_figure)
 
-        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy
 
     def animate(i):
         im_energy.set_data(c.grid[1:c.n-1,1:c.n-1,i])
@@ -348,12 +366,16 @@ if __name__ == "__main__":
         ax_sun.set_data(numpy.arange(i), c.STAT_sun[:i])
         ax_ratio.set_data(ratioPC[:i], average_energy[:i])
         im_died.set_data(dead_cells[1:c.n-1,1:c.n-1,i])
+        ax_distributed.set_data(numpy.arange(i), c.STAT_alloc_energy[:i])
+        ax_total_energy.set_data(numpy.arange(i), c.STAT_total_energy[:i])
 
-        # fig.subtitle('t = %.3f' % float(i))
-        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, c.step_num_max), interval=1, blit=False)
 
-    # anim.save(f'results/animation_random30_f_{f}__k_{k}.mp4', fps=200)
+    # define the number of seconds your video must be
+    seconds = 10
+    fps = c.step_num_max / seconds
+    anim.save("CA_animation.mp4", fps=fps)
 
-    plt.show()
+    # plt.show()
