@@ -10,9 +10,8 @@ On this page we will describe our approach of the model on a cellular automaton.
 
 For this model, we used a N x N grid, where each cell is able to produce or
 
-test 5
+test 6
 
 # Results
 
-
-{ % include youtubePlayer.html id="lQolYLWnwS8" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/lQolYLWnwS8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
