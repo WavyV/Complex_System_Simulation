@@ -10,8 +10,9 @@ On this page we will describe our approach of the model on a cellular automaton.
 
 For this model, we used a N x N grid, where each cell is able to produce or
 
+test 2
 
 # Results
 
 
-<iframe width="560" height="315" src="CA_animation.mp4" frameborder="0" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/CA/CA_animation.mp4" frameborder="0" allowfullscreen></iframe>
