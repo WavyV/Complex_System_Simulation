@@ -25,8 +25,8 @@ class CA(object):
         :param dt:                      time interval
         :param max_step:                maximum number of steps
         :param energy_start:            initial amount of energy in the batteries
-        :param alpha_min:
-        :param alpha_max:               production = uniform(alpha_min, alpha_max)*sin(...)
+        :param alpha_min:               minimal value alpha
+        :param alpha_max:               maximal value alpha -> production = uniform(alpha_min, alpha_max)*sin(...)
         :param beta:                    consumption / time step
         :param energy_max:              maximum storage capacity
         :param energy_min:              above this level the energy is reallocated
@@ -243,22 +243,25 @@ class CA(object):
 
 if __name__ == "__main__":
 
+    # set potential production = potential consumption
+    beta = ((0 + 10) / 2) * 0.31831
+
     # initialize CA
     c = CA(n = 20,
            dt = 0.02,
            max_step = 400,
-           energy_start = 500,
+           energy_start = 50,
            alpha_min = 0,
            alpha_max = 10,
-           beta = 5,
+           beta = beta,
            energy_max = 500,
-           energy_min = 450,
+           energy_min = 500,
            max_transfer = 500,
            verbose = True,
            cells_can_die = True,
            take_panels_if_died = True)
 
-    # save animation 
+    # save animation
     save = False
 
     # run CA
@@ -267,10 +270,13 @@ if __name__ == "__main__":
 
     # Print potential production and consumption
     potential_prod = numpy.sum(c.STAT_sun * numpy.sum(c.alpha[1:c.n - 1, 1:c.n - 1]))
-    potential_cons = c.beta * c.step_num_max * c.n ** 2
+    potential_cons = c.beta * c.step_num_max * (c.n-2) ** 2
     ratio_prod_cons = potential_prod / potential_cons
     print("Potential production: " + str(potential_prod))
     print("Potential consumption: " + str(potential_cons))
+    print("Ratio production / consumption: " + str(ratio_prod_cons))
+
+    print(numpy.mean(c.alpha[1:c.n - 1, 1:c.n - 1]))
 
     # Run some calculations for visualisation and animation
     # Calculate ratio production over consumption and average energy per node
