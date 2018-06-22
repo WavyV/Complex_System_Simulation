@@ -8,7 +8,7 @@ On this page we will describe our approach of the model on a cellular automaton.
 
 # Approach
 
-For this model, we used a N x N grid, where each cell is able to produce or
+For this 2D cellular automaton, we used a N x N grid, where each cell is able to produce and consume electricity. We define the production per cell as $p(t) = max(A sin(2 \pi t) ,0)$, where $A~U[0,1]$ over all cells, while the consumption is a constant factor \beta
 
 test 6
 
