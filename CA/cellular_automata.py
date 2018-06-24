@@ -1,26 +1,26 @@
-# Mask to select neighbours
 import numpy
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from copy import deepcopy
+from matplotlib.patches import Patch
 
+# create cellular automata class
 class CA(object):
     def __init__(self,
-                 n=100,
-                 dt=0.1,
-                 max_step=1000,
-                 energy_start=100,
-                 alpha_min=0,
-                 alpha_max=1,
-                 beta=1,
-                 energy_max=10,
-                 energy_min=10,
+                 n = 100,
+                 dt = 0.1,
+                 max_step = 1000,
+                 energy_start = 100,
+                 alpha_min = 0,
+                 alpha_max = 1,
+                 beta = 1,
+                 energy_max = 10,
+                 energy_min = 10,
                  max_transfer = 10,
-                 verbose=True,
                  cells_can_die = True,
                  take_panels_if_died = False):
         """
-        Initializes the cellular automata
+        Initializes the cellular automata:
         :param n:                       the grid size is (n x n). Living cells: (n-2) x (n-2).
         :param dt:                      time interval
         :param max_step:                maximum number of steps
@@ -30,7 +30,6 @@ class CA(object):
         :param beta:                    consumption / time step
         :param energy_max:              maximum storage capacity
         :param energy_min:              above this level the energy is reallocated
-        :param verbose:                 print output
         :param cells_can_die:           Whether or not cells can die
         :param take_panels_if_died:     Whether you can take your neighbours solar panels if he died:
         """
@@ -39,7 +38,6 @@ class CA(object):
         self.n = n
         self.energy_max = energy_max
         self.energy_min = energy_min
-        self.verbose = verbose
         self.max_transfer = max_transfer
 
         # Energy
@@ -52,6 +50,7 @@ class CA(object):
         self.alpha = numpy.zeros([n, n])
         self.alpha[1:n - 1, 1:n - 1] = numpy.random.uniform(alpha_min, alpha_max, size=[n - 2, n - 2])
         self.alpha_new_alloc = numpy.zeros([n, n])
+        self.alpha_min = alpha_min
         self.alpha_max = alpha_max
 
         # Beta
@@ -141,7 +140,7 @@ class CA(object):
 
     def count_neighbours(self):
         """
-        Fill the self.friend_n matrix with the number of living neighbours of all cells.
+        Fill the self.friend_n matrix with the number of living/active neighbours of all cells.
         :return: nothing.
         """
         for i in numpy.arange(1, self.n - 1):
@@ -245,26 +244,28 @@ if __name__ == "__main__":
 
     # set potential production = potential consumption
     beta = ((0 + 10) / 2) * 0.31831
+    # set total time to a week based on number of steps
+    max_step = 400
+    dt = 7 / max_step
 
     # initialize CA
-    c = CA(n = 20,
+    c = CA(n = 10,
            dt = 0.02,
            max_step = 400,
-           energy_start = 50,
+           energy_start = 100,
            alpha_min = 0,
            alpha_max = 10,
            beta = beta,
-           energy_max = 500,
-           energy_min = 500,
-           max_transfer = 500,
-           verbose = True,
+           energy_max = 100,
+           energy_min = 100,
+           max_transfer = 0,
            cells_can_die = True,
-           take_panels_if_died = True)
+           take_panels_if_died = False)
 
-    # save animation
+    # save animation if True
     save = False
 
-    # run CA
+    # run CA for ma
     for i in range(c.step_num_max-1):
         c.step()
 
@@ -276,8 +277,6 @@ if __name__ == "__main__":
     print("Potential consumption: " + str(potential_cons))
     print("Ratio production / consumption: " + str(ratio_prod_cons))
 
-    print(numpy.mean(c.alpha[1:c.n - 1, 1:c.n - 1]))
-
     # Run some calculations for visualisation and animation
     # Calculate ratio production over consumption and average energy per node
     ratioPC = c.STAT_total_production / c.STAT_total_consumption
@@ -288,13 +287,12 @@ if __name__ == "__main__":
     dead_cells = deepcopy(c.grid)
     dead_cells[dead_cells > 0] = 1
 
-    # # print energy levels initial grid
-    # plt.imshow(c.grid[:,:,0], vmin=0, vmax=10)
-    # plt.show()
 
     # animate the results
     # initialize figure
-    fig = plt.figure()
+    fig = plt.figure(figsize=(13,8))
+    fig.suptitle(f"Parameters: N = {c.n**2}, Alpha ~ U[{c.alpha_min},{c.alpha_max}], Beta = {c.beta}\, Max energy = {c.energy_max}, Min energy = {c.energy_min} \
+                    Max transfer = {c.max_transfer}, Cells can die = {c.cells_can_die}, Take panels if died = {c.take_panels_if_died}")
 
     data_figure = numpy.zeros(c.step_num_max)
     data_imshow = numpy.zeros((c.n-2, c.n-2))
@@ -303,26 +301,35 @@ if __name__ == "__main__":
     ax1 = plt.subplot(3,3,1)
     im_energy = ax1.imshow(data_imshow, vmin=0, vmax=c.energy_max)
     ax1.set_title("Energy levels")
+    fig.colorbar(im_energy, ax=ax1)
+    ax1.set_xticks([])
+    ax1.set_yticks([])
 
     # Total active cells
-    ax2 = plt.subplot(3,3,2)
+    ax2 = plt.subplot(3,3,3)
     ax2.set_xlim([0, c.step_num_max])
     ax2.set_ylim([0,1.05])
-    ax2.set_title("Total active")
+    ax2.set_title("Number of active nodes")
     ax_active, = ax2.plot(data_figure)
+    ax2.set_xlabel("Time")
+    ax2.set_ylabel("Active (%)")
 
     # Value of alpha on the grid as a function of the sun
-    ax3 = plt.subplot(3,3,3)
-    ax3.set_title("Alpha")
+    ax3 = plt.subplot(3,3,4)
+    ax3.set_title("Energy production")
     im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=c.alpha_max)
+    fig.colorbar(im_alpha, ax=ax3)
+    ax3.set_xticks([])
+    ax3.set_yticks([])
 
     # Number of saved cells due to altruism
-    ax4 = plt.subplot(3,3,4)
+    ax4 = plt.subplot(3,3,7)
     ax4.set_xlim([0, c.step_num_max])
-    ax4.set_ylim([0,(c.n-1)**2])
+    ax4.set_ylim([0,(c.n-1)**2+1])
     ax_saved, = ax4.plot(data_figure)
-    ax4.set_title("Saved cells by distribution")
-    plt.tight_layout()
+    ax4.set_title("Saved cells by energy distribution")
+    ax4.set_xlabel("Time")
+    ax4.set_ylabel("Number of cells")
 
     # Value of the sun
     ax5 = plt.subplot(3,3,5)
@@ -330,38 +337,47 @@ if __name__ == "__main__":
     ax5.set_ylim([0,1.05])
     ax_sun, = ax5.plot(data_figure)
     ax5.set_title("Sun")
-    plt.tight_layout()
+    ax5.set_xlabel("Time")
+    ax5.set_ylabel(r"$\max(\sin(2\pi t,0)$")
 
     # Average energy per node as a function of the ratio P/C
     ax6 = plt.subplot(3,3,6)
-    ax6.set_xlim([-0.01, numpy.amax(ratioPC)])
-    ax6.set_ylim([0, numpy.amax(average_energy)])
+    ax6.set_xlim([-0.01, numpy.amax(ratioPC)*1.1])
+    ax6.set_ylim([0, numpy.amax(average_energy)*1.1])
     ax_ratio, = ax6.plot(data_figure)
     ax6.set_title("Ratio")
     ax6.set_xlabel('P/C')
     ax6.set_ylabel('Average Energy per Node')
-    plt.tight_layout()
 
     # Cells that died
-    ax7 = plt.subplot(3,3,7)
+    ax7 = plt.subplot(3,3,2)
     im_died = ax7.imshow(data_imshow, vmin=0, vmax=1, cmap="prism")
-    ax7.set_title("Died cells (green = alive)")
+    ax7.set_title("Status cells")
+    ax7.set_xticks([])
+    ax7.set_yticks([])
+    legend_elements = [Patch(facecolor='green', label='Active'), \
+                        Patch(facecolor='red', label='Inactive')]
+    ax7.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
     # Distributed energy
     ax8 = plt.subplot(3,3,8)
     ax8.set_xlim([0, c.step_num_max])
-    ax8.set_ylim([0, numpy.amax(c.STAT_alloc_energy)])
+    ax8.set_ylim([0, numpy.amax(c.STAT_alloc_energy) + 0.1])
     ax_distributed, = ax8.plot(data_figure)
-    ax8.set_title("Distributed energy")
-    plt.tight_layout()
+    ax8.set_title("Energy distribution")
+    ax8.set_xlabel("Time")
+    ax8.set_ylabel("Energy")
 
     # Total Energy level
     ax9 = plt.subplot(3,3,9)
     ax9.set_xlim([0, c.step_num_max])
     ax9.set_ylim([0, numpy.amax(c.STAT_total_energy)])
     ax_total_energy, = ax9.plot(data_figure)
-    ax9.set_title("Total energy level")
-    plt.tight_layout()
+    ax9.set_title("Aggregate energy")
+    ax9.set_xlabel("Time")
+    ax9.set_ylabel("Energy")
+
+    plt.tight_layout(pad=1.0, w_pad=3.0, h_pad=1.0)
 
     def init():
         im_energy.set_data(data_imshow)
@@ -395,6 +411,6 @@ if __name__ == "__main__":
         # define the number of seconds your video must be
         seconds = 10
         fps = c.step_num_max / seconds
-        anim.save("CA_animation.mp4", fps=fps)
+        anim.save("CA_animation2.mp4", fps=fps)
 
     plt.show()
