@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from copy import deepcopy
 from matplotlib.patches import Patch
+import datetime
 
 # create cellular automata class
 class CA(object):
     def __init__(self,
                  n = 100,
-                 dt = 0.1,
+                 days = 7,
                  max_step = 1000,
                  energy_start = 100,
                  alpha_min = 0,
@@ -25,7 +26,7 @@ class CA(object):
         :param dt:                      time interval
         :param max_step:                maximum number of steps
         :param energy_start:            initial amount of energy in the batteries
-        :param alpha_min:               minimal value alpha
+        :param alpha_min:               minimal value alpha (production per day)
         :param alpha_max:               maximal value alpha -> production = uniform(alpha_min, alpha_max)*sin(...)
         :param beta:                    consumption / time step
         :param energy_max:              maximum storage capacity
@@ -40,6 +41,14 @@ class CA(object):
         self.energy_min = energy_min
         self.max_transfer = max_transfer
 
+        # Time
+        self.t = 0
+        self.days = days
+        self.dt = days / max_step
+        self.step_num = 0
+        self.step_num_max = max_step
+        self.step_per_day = max_step / days
+
         # Energy
         self.energy = numpy.zeros([n, n], dtype=numpy.float32)
         self.energy[1:n - 1, 1:n - 1] = energy_start
@@ -48,19 +57,16 @@ class CA(object):
 
         # Alpha
         self.alpha = numpy.zeros([n, n])
-        self.alpha[1:n - 1, 1:n - 1] = numpy.random.uniform(alpha_min, alpha_max, size=[n - 2, n - 2])
         self.alpha_new_alloc = numpy.zeros([n, n])
-        self.alpha_min = alpha_min
-        self.alpha_max = alpha_max
+        self.alpha_min_per_day = alpha_min
+        self.alpha_max_per_day = alpha_max
+        self.alpha_min = alpha_min / self.step_per_day
+        self.alpha_max = alpha_max / self.step_per_day
+        self.alpha[1:n - 1, 1:n - 1] = numpy.random.uniform(self.alpha_min, self.alpha_max, size=[n - 2, n - 2])
 
         # Beta
-        self.beta = beta
-
-        # Time
-        self.t = 0
-        self.dt = dt
-        self.step_num = 0
-        self.step_num_max = max_step
+        self.beta_per_day = beta
+        self.beta = beta / self.step_per_day
 
         # Neighbours
         self.friend_n = numpy.zeros([n, n])
@@ -130,7 +136,7 @@ class CA(object):
         self.STAT_total_energy[self.step_num] = numpy.sum(self.energy)
         self.STAT_sun[self.step_num] = self.prod_func(1, self.t)
         self.STAT_total_production[self.step_num] = numpy.sum(self.energy_new_prod)
-        self.STAT_total_consumption[self.step_num] = numpy.sum(self.beta * self.STAT_total_active_abs)
+        self.STAT_total_consumption[self.step_num] = self.beta * numpy.sum(1.0*(self.energy>0))
         self.STAT_total_alpha[self.step_num] = numpy.sum(self.alpha)
 
         self.grid[:,:, self.step_num] = self.energy
@@ -244,26 +250,25 @@ if __name__ == "__main__":
 
     # set potential production = potential consumption
     beta = ((0 + 10) / 2) * 0.31831
-    # set total time to a week based on number of steps
-    max_step = 400
-    dt = 7 / max_step
+    # set number of steps
+    max_step = 500
 
     # initialize CA
     c = CA(n = 10,
-           dt = 0.02,
+           days = 10,
            max_step = 400,
-           energy_start = 100,
+           energy_start = 1.59 / 2,
            alpha_min = 0,
            alpha_max = 10,
            beta = beta,
-           energy_max = 100,
-           energy_min = 100,
+           energy_max = 1.59,
+           energy_min = 1.59,
            max_transfer = 0,
            cells_can_die = True,
            take_panels_if_died = False)
 
     # save animation if True
-    save = False
+    save = True
 
     # run CA for ma
     for i in range(c.step_num_max-1):
@@ -279,9 +284,8 @@ if __name__ == "__main__":
 
     # Run some calculations for visualisation and animation
     # Calculate ratio production over consumption and average energy per node
-    ratioPC = c.STAT_total_production / c.STAT_total_consumption
-    average_energy = c.STAT_total_energy / c.STAT_total_active_abs
-    ratioPC[0] = 0
+    ratioPC = numpy.nan_to_num(c.STAT_total_production / c.STAT_total_consumption)
+    average_energy = numpy.nan_to_num(c.STAT_total_energy / c.STAT_total_active_abs)
 
     # Set dead_cell to zero
     dead_cells = deepcopy(c.grid)
@@ -291,11 +295,14 @@ if __name__ == "__main__":
     # animate the results
     # initialize figure
     fig = plt.figure(figsize=(13,8))
-    fig.suptitle(f"Parameters: N = {c.n**2}, Alpha ~ U[{c.alpha_min},{c.alpha_max}], Beta = {c.beta}\, Max energy = {c.energy_max}, Min energy = {c.energy_min} \
-                    Max transfer = {c.max_transfer}, Cells can die = {c.cells_can_die}, Take panels if died = {c.take_panels_if_died}")
+    fig.suptitle(f"Parameters:  N= {c.n**2},  Alpha ~ U[{c.alpha_min_per_day},{c.alpha_max_per_day}],  Beta = {round(c.beta_per_day,2)},  Max energy = {c.energy_max},\n  Min energy = {c.energy_min},  Max transfer = {c.max_transfer},  Cells can die = {c.cells_can_die},  Take panels if died = {c.take_panels_if_died}")
 
     data_figure = numpy.zeros(c.step_num_max)
     data_imshow = numpy.zeros((c.n-2, c.n-2))
+
+    # Set days label for animation
+    xtic = [x for x in range(c.step_num_max) if x % int(c.step_per_day) == 0]
+    xlab = [d for d in range(c.days+1)]
 
     # Energy levels on grid
     ax1 = plt.subplot(3,3,1)
@@ -306,7 +313,7 @@ if __name__ == "__main__":
     ax1.set_yticks([])
 
     # Total active cells
-    ax2 = plt.subplot(3,3,3)
+    ax2 = plt.subplot(3,3,4)
     ax2.set_xlim([0, c.step_num_max])
     ax2.set_ylim([0,1.05])
     ax2.set_title("Number of active nodes")
@@ -315,7 +322,7 @@ if __name__ == "__main__":
     ax2.set_ylabel("Active (%)")
 
     # Value of alpha on the grid as a function of the sun
-    ax3 = plt.subplot(3,3,4)
+    ax3 = plt.subplot(3,3,3)
     ax3.set_title("Energy production")
     im_alpha = ax3.imshow(data_imshow, vmin=0, vmax=c.alpha_max)
     fig.colorbar(im_alpha, ax=ax3)
@@ -328,8 +335,10 @@ if __name__ == "__main__":
     ax4.set_ylim([0,(c.n-1)**2+1])
     ax_saved, = ax4.plot(data_figure)
     ax4.set_title("Saved cells by energy distribution")
-    ax4.set_xlabel("Time")
+    ax4.set_xlabel("Days")
     ax4.set_ylabel("Number of cells")
+    ax4.set_xticks(xtic)
+    ax4.set_xticklabels(xlab)
 
     # Value of the sun
     ax5 = plt.subplot(3,3,5)
@@ -337,12 +346,14 @@ if __name__ == "__main__":
     ax5.set_ylim([0,1.05])
     ax_sun, = ax5.plot(data_figure)
     ax5.set_title("Sun")
-    ax5.set_xlabel("Time")
+    ax5.set_xlabel("Days")
     ax5.set_ylabel(r"$\max(\sin(2\pi t,0)$")
+    ax5.set_xticks(xtic)
+    ax5.set_xticklabels(xlab)
 
     # Average energy per node as a function of the ratio P/C
     ax6 = plt.subplot(3,3,6)
-    ax6.set_xlim([-0.01, numpy.amax(ratioPC)*1.1])
+    ax6.set_xlim([-0.1, numpy.amax(ratioPC)*1.1])
     ax6.set_ylim([0, numpy.amax(average_energy)*1.1])
     ax_ratio, = ax6.plot(data_figure)
     ax6.set_title("Ratio")
@@ -365,19 +376,23 @@ if __name__ == "__main__":
     ax8.set_ylim([0, numpy.amax(c.STAT_alloc_energy) + 0.1])
     ax_distributed, = ax8.plot(data_figure)
     ax8.set_title("Energy distribution")
-    ax8.set_xlabel("Time")
+    ax8.set_xlabel("Days")
     ax8.set_ylabel("Energy")
+    ax8.set_xticks(xtic)
+    ax8.set_xticklabels(xlab)
 
     # Total Energy level
     ax9 = plt.subplot(3,3,9)
     ax9.set_xlim([0, c.step_num_max])
-    ax9.set_ylim([0, numpy.amax(c.STAT_total_energy)])
+    ax9.set_ylim([0, numpy.amax(c.STAT_total_energy*1.1)])
     ax_total_energy, = ax9.plot(data_figure)
     ax9.set_title("Aggregate energy")
-    ax9.set_xlabel("Time")
+    ax9.set_xlabel("Days")
     ax9.set_ylabel("Energy")
+    ax9.set_xticks(xtic)
+    ax9.set_xticklabels(xlab)
 
-    plt.tight_layout(pad=1.0, w_pad=3.0, h_pad=1.0)
+    plt.tight_layout(pad=1.0, w_pad=3.0, h_pad=1.0, rect=(0,0,1,0.92))
 
     def init():
         im_energy.set_data(data_imshow)
@@ -409,8 +424,11 @@ if __name__ == "__main__":
 
     if save:
         # define the number of seconds your video must be
-        seconds = 10
+        now = datetime.datetime.now()
+        print(f"Save as: CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4")
+        seconds = 30
         fps = c.step_num_max / seconds
-        anim.save("CA_animation2.mp4", fps=fps)
-
-    plt.show()
+        anim.save(f"CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+    else:
+        # if not save, then show the animation
+        plt.show()
