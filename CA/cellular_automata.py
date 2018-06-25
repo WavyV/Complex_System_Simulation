@@ -57,12 +57,14 @@ class CA(object):
 
         # Alpha
         self.alpha = numpy.zeros([n, n])
+        self.alpha_initial = numpy.zeros([n, n])
         self.alpha_new_alloc = numpy.zeros([n, n])
         self.alpha_min_per_day = alpha_min
         self.alpha_max_per_day = alpha_max
         self.alpha_min = alpha_min / self.step_per_day
         self.alpha_max = alpha_max / self.step_per_day
         self.alpha[1:n - 1, 1:n - 1] = numpy.random.uniform(self.alpha_min, self.alpha_max, size=[n - 2, n - 2])
+        self.alpha_initial[1:n - 1, 1:n - 1] = numpy.random.uniform(self.alpha_min, self.alpha_max, size=[n - 2, n - 2])
 
         # Beta
         self.beta_per_day = beta
@@ -249,7 +251,9 @@ class CA(object):
 if __name__ == "__main__":
 
     # set potential production = potential consumption
-    beta = ((0 + 10) / 2) * 0.31831
+    alpha_min = 0
+    alpha_max = 10
+    beta = ((alpha_min + alpha_max) / 2) * 0.31831
     # set number of steps
     max_step = 500
 
@@ -258,12 +262,12 @@ if __name__ == "__main__":
            days = 10,
            max_step = 400,
            energy_start = 1.59 / 2,
-           alpha_min = 0,
-           alpha_max = 10,
+           alpha_min = alpha_min,
+           alpha_max = alpha_max,
            beta = beta,
            energy_max = 1.59,
-           energy_min = 1.59,
-           max_transfer = 0,
+           energy_min = 0.8,
+           max_transfer = 10,
            cells_can_die = True,
            take_panels_if_died = False)
 
@@ -275,8 +279,8 @@ if __name__ == "__main__":
         c.step()
 
     # Print potential production and consumption
-    potential_prod = numpy.sum(c.STAT_sun * numpy.sum(c.alpha[1:c.n - 1, 1:c.n - 1]))
-    potential_cons = c.beta * c.step_num_max * (c.n-2) ** 2
+    potential_prod = numpy.sum(c.STAT_sun * numpy.sum(c.alpha_initial[1:c.n - 1, 1:c.n - 1]))
+    potential_cons = c.beta * c.step_num_max * ((c.n-2) ** 2)
     ratio_prod_cons = potential_prod / potential_cons
     print("Potential production: " + str(potential_prod))
     print("Potential consumption: " + str(potential_cons))
