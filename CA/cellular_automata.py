@@ -208,9 +208,7 @@ class CA(object):
                                                   min(energy_per_neighbour[i, j - 1], self.max_transfer) + min(energy_per_neighbour[i, j + 1], self.max_transfer)
 
                     # Check if without this amount, it would stop working
-                    self.saved_cells[i, j] = 1.0*((self.energy[i, j]<=self.beta) and
-                                                           (self.energy[i, j] - energy_plus[i, j] +
-                                                            self.energy_new_alloc[i, j]) > self.beta)
+                    self.saved_cells[i, j] = 1.0*((self.alpha[i, j] < self.beta / 0.31831) and (self.energy_new_alloc[i, j] - energy_plus[i, j] + max(energy_plus[i,j] - self.friend_n[i,j] * self.max_transfer, 0) > 0))
 
                     self.STAT_saved[self.step_num] += self.saved_cells[i, j]
 
@@ -247,33 +245,7 @@ class CA(object):
         if self.cells_can_die:
             self.alpha[self.energy == 0] = 0
 
-
-if __name__ == "__main__":
-
-    # set potential production = potential consumption
-    alpha_min = 0
-    alpha_max = 10
-    beta = ((alpha_min + alpha_max) / 2) * 0.31831
-    # set number of steps
-    max_step = 500
-
-    # initialize CA
-    c = CA(n = 10,
-           days = 10,
-           max_step = 400,
-           energy_start = 1.59 / 2,
-           alpha_min = alpha_min,
-           alpha_max = alpha_max,
-           beta = beta,
-           energy_max = 1.59,
-           energy_min = 0.8,
-           max_transfer = 10,
-           cells_can_die = True,
-           take_panels_if_died = False)
-
-    # save animation if True
-    save = True
-
+def animate_CA():
     # run CA for ma
     for i in range(c.step_num_max-1):
         c.step()
@@ -294,7 +266,6 @@ if __name__ == "__main__":
     # Set dead_cell to zero
     dead_cells = deepcopy(c.grid)
     dead_cells[dead_cells > 0] = 1
-
 
     # animate the results
     # initialize figure
@@ -322,8 +293,10 @@ if __name__ == "__main__":
     ax2.set_ylim([0,1.05])
     ax2.set_title("Number of active nodes")
     ax_active, = ax2.plot(data_figure)
-    ax2.set_xlabel("Time")
+    ax2.set_xlabel("Days")
     ax2.set_ylabel("Active (%)")
+    ax2.set_xticks(xtic)
+    ax2.set_xticklabels(xlab)
 
     # Value of alpha on the grid as a function of the sun
     ax3 = plt.subplot(3,3,3)
@@ -360,6 +333,7 @@ if __name__ == "__main__":
     ax6.set_xlim([-0.1, numpy.amax(ratioPC)*1.1])
     ax6.set_ylim([0, numpy.amax(average_energy)*1.1])
     ax_ratio, = ax6.plot(data_figure)
+    ax_ratio_red, = ax6.plot(data_figure, data_figure, color='red', linewidth=3)
     ax6.set_title("Ratio")
     ax6.set_xlabel('P/C')
     ax6.set_ylabel('Average Energy per Node')
@@ -405,11 +379,12 @@ if __name__ == "__main__":
         ax_saved.set_data(data_figure, data_figure)
         ax_sun.set_data(data_figure, data_figure)
         ax_ratio.set_data(data_figure, data_figure)
+        ax_ratio_red.set_data(data_figure, data_figure)
         im_died.set_data(data_imshow)
         ax_distributed.set_data(data_figure, data_figure)
         ax_total_energy.set_data(data_figure, data_figure)
 
-        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy, ax_ratio_red
 
     def animate(i):
         im_energy.set_data(c.grid[1:c.n-1,1:c.n-1,i])
@@ -422,7 +397,10 @@ if __name__ == "__main__":
         ax_distributed.set_data(numpy.arange(i), c.STAT_alloc_energy[:i])
         ax_total_energy.set_data(numpy.arange(i), c.STAT_total_energy[:i])
 
-        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy
+        if i>1:
+            ax_ratio_red.set_data(ratioPC[i-2:i], average_energy[i-2:i])
+
+        return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy, ax_ratio_red
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, c.step_num_max), interval=1, blit=False)
 
@@ -432,7 +410,37 @@ if __name__ == "__main__":
         print(f"Save as: CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4")
         seconds = 30
         fps = c.step_num_max / seconds
-        anim.save(f"CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+        anim.save(f"results/CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
     else:
         # if not save, then show the animation
         plt.show()
+
+
+if __name__ == "__main__":
+
+    # set potential production = potential consumption
+    alpha_min = 0
+    alpha_max = 10
+    beta = ((alpha_min + alpha_max) / 2) * 0.31831
+    # set number of steps
+    max_step = 500
+
+    # initialize CA
+    c = CA(n = 50,
+           days = 10,
+           max_step = 400,
+           energy_start = 1.59 / 2,
+           alpha_min = alpha_min,
+           alpha_max = alpha_max,
+           beta = beta,
+           energy_max = 1.59,
+           energy_min = 1.59,
+           max_transfer = 0,
+           cells_can_die = True,
+           take_panels_if_died = False)
+
+    # save animation if True
+    save = False
+
+    # runs and animates the cellular automata
+    animate_CA()
