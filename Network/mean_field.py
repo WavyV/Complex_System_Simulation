@@ -2,6 +2,7 @@ import networkx as nx
 from matplotlib import pyplot as plt
 import random
 import numpy as np
+import scipy.stats
 
 
 def initialize(N):
@@ -16,6 +17,8 @@ def initialize(N):
     for node in G.nodes():
         G.node[node]['power'] = 0
     return G
+
+
 
 
 def generate_power(G, a):
@@ -45,29 +48,38 @@ def send_power(G):
 
 
 def get_global_status(G):
-    total_power = 0
-    for node in G.nodes():
-        total_power += G.node[node]['power']
-
+    total_power = sum([G.node[node]['power'] for node in G.nodes()])
     return total_power / len(G.nodes())
-
 
 
 N = 50
 max_it = 1000
-a = 3
+a = 2
 G = initialize(N)
 
-status = np.zeros((max_it, 3))
+status = np.zeros(max_it)
+random_walker = np.zeros((max_it))
 
 for t in range(max_it):
     G = use_power(G)
     G = generate_power(G, a)
     G = send_power(G)
-    status[t, :] = get_global_status(G)
+    status[t] = get_global_status(G)
+    if t == 0:
+    	continue
+    random_walker[t] = random_walker[t-1] + random.gauss(0,1)/10
 
-
-plt.plot(range(1, max_it+1), status[:,0])
+plt.plot(range(1, max_it+1), status, label="Energy")
+plt.plot(range(1, max_it+1),random_walker, label="Random walker")
 plt.ylabel('Average Energy per Node')
 plt.xlabel('Iteration')
+plt.title("Energy mean: %.3f, Random Walker mean: %.3f\n Energy std: %.3f, Random Walker std: %.3f" % (np.mean(status), \
+	np.mean(random_walker), \
+	np.std(status), \
+	np.std(random_walker)))
+
+plt.legend(loc=0)
 plt.show()
+
+
+
