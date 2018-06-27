@@ -8,7 +8,7 @@ from matplotlib import animation
 from copy import deepcopy
 from matplotlib.patches import Patch
 
-def initialize(N, cls, min_power, alphas, p=0, k=0):
+def initialize(N, cls, min_power, alphas, dt, p=0, k=0):
     if cls == 'random':
         G =  nx.erdos_renyi_graph(N, p)
     elif cls == 'watts':
@@ -27,7 +27,7 @@ def initialize(N, cls, min_power, alphas, p=0, k=0):
                     G.add_edge(i, j)
     for alpha, node in enumerate(G.nodes()):
         G.node[node]['power'] = min_power
-        G.node[node]['alpha'] = alphas[alpha]*0.01
+        G.node[node]['alpha'] = alphas[alpha]
         G.node[node]['surplus'] = 0
         G.node[node]['alloc'] = 0
     return G
@@ -39,9 +39,9 @@ def generate_power(G, P, max_power):
         G.node[node]['power'] += G.node[node]['alpha'] * P
     return G
 
-def send_power(G, min_power):
+def send_power(G, min_power, share_energy):
     for node in G.nodes():
-        if G.node[node]['power'] > min_power:
+        if G.node[node]['power'] > min_power and share_energy:
             G.node[node]['surplus'] = G.node[node]['power'] - min_power
         else:
             G.node[node]['surplus'] = 0
@@ -55,17 +55,18 @@ def update_power(G, max_power):
     for node in G.nodes():
         if G.node[node]['power'] == 0:
             continue
+
         G.node[node]['power'] = G.node[node]['power'] + G.node[node]['alloc'] - G.node[node]['surplus']
         #Reset it back to 0
         G.node[node]['surplus'] = 0
         G.node[node]['alloc'] = 0
     return G
 
-def use_power(G, exp_alpha):
+def use_power(G, beta):
     for node in G.nodes():
         if G.node[node]['power'] == 0:
             continue
-        G.node[node]['power'] -= exp_alpha/np.pi
+        G.node[node]['power'] -= beta
 
         if G.node[node]['power'] > max_power:
             G.node[node]['power'] = max_power
@@ -80,91 +81,51 @@ def get_global_status(G):
 def get_local_status(G):
     return np.array([G.node[node]['power'] for node in G.nodes()])
 
-
-    #
-
-    #
-    # # Number of saved cells due to altruism
-    # ax4 = plt.subplot(3,3,7)
-    # ax4.set_xlim([0, c.step_num_max])
-    # ax4.set_ylim([0,(c.n-1)**2+1])
-    # ax_saved, = ax4.plot(data_figure)
-    # ax4.set_title("Saved cells by energy distribution")
-    # ax4.set_xlabel("Days")
-    # ax4.set_ylabel("Number of cells")
-    # ax4.set_xticks(xtic)
-    # ax4.set_xticklabels(xlab)
-    #
-
-    #
-    # # Average energy per node as a function of the ratio P/C
-    # ax6 = plt.subplot(3,3,6)
-    # ax6.set_xlim([-0.1, numpy.amax(ratioPC)*1.1])
-    # ax6.set_ylim([0, numpy.amax(average_energy)*1.1])
-    # ax_ratio, = ax6.plot(data_figure)
-    # ax_ratio_red, = ax6.plot(data_figure, data_figure, color='red', linewidth=3)
-    # ax6.set_title("Ratio")
-    # ax6.set_xlabel('P/C')
-    # ax6.set_ylabel('Average Energy per Node')
-    #
-    # # Cells that died
-    # ax7 = plt.subplot(3,3,2)
-    # im_died = ax7.imshow(data_imshow, vmin=0, vmax=1, cmap="prism")
-    # ax7.set_title("Status cells")
-    # ax7.set_xticks([])
-    # ax7.set_yticks([])
-    # legend_elements = [Patch(facecolor='green', label='Active'), \
-    #                     Patch(facecolor='red', label='Inactive')]
-    # ax7.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-    #
-    # # Distributed energy
-    # ax8 = plt.subplot(3,3,8)
-    # ax8.set_xlim([0, c.step_num_max])
-    # ax8.set_ylim([0, numpy.amax(c.STAT_alloc_energy) + 0.1])
-    # ax_distributed, = ax8.plot(data_figure)
-    # ax8.set_title("Energy distribution")
-    # ax8.set_xlabel("Days")
-    # ax8.set_ylabel("Energy")
-    # ax8.set_xticks(xtic)
-    # ax8.set_xticklabels(xlab)
-    #
-    # # Total Energy level
-    # ax9 = plt.subplot(3,3,9)
-    # ax9.set_xlim([0, c.step_num_max])
-    # ax9.set_ylim([0, numpy.amax(c.STAT_total_energy*1.1)])
-    # ax_total_energy, = ax9.plot(data_figure)
-    # ax9.set_title("Aggregate energy")
-    # ax9.set_xlabel("Days")
-    # ax9.set_ylabel("Energy")
-    # ax9.set_xticks(xtic)
-    # ax9.set_xticklabels(xlab)
-
-    # def init():
-    #     ---
-    #
-    #     return im_energy #, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy, ax_ratio_red
-
 def init():
     pass
 
 def animate(i):
-    # run a step of the simulation
+    # set global variables
     global G
     global N
+    global beta
+    global exp_alpha
     global max_power
+    global dependent_nodes
     global production
     global active
-    G = generate_power(G, production[i], max_power)
-    G = send_power(G, min_power)
-    G = update_power(G, max_power)
-    G = use_power(G, exp_alpha * dt)
+    global aggregate
+    global average_energy
+    global ratioPC
+    global saved
+    global allocated_power
+    global share_energy
 
-    # calculate values
+    # run a step of simulation
+    G = generate_power(G, production[i], max_power)
+    G = send_power(G, min_power, share_energy)
+
+    # intermediate recording of statistics
+    increased_power = [1 if G.node[node]['alloc'] - G.node[node]['surplus'] > 0 else 0 for node in G.nodes()]
+    allocated_power.append(np.sum(np.asarray([G.node[node]['alloc'] for node in G.nodes()])))
+
+    # continue step of simulation
+    G = update_power(G, max_power)
+    G = use_power(G, beta)
+
+    # calculate values for animation
     energy = [G.node[node]['power'] for node in G.nodes()]
     status = [1 if G.node[node]['power'] > 0 else 0 for node in G.nodes()]
     prod = [G.node[node]['alpha'] * production[i] for node in G.nodes()]
-    if i < max_it
+    cons = np.sum(np.asarray(status) * (exp_alpha/np.pi))
+
+    if i <= max_it:
+        ratioPC.append(np.sum(prod) / cons)
         active.append(np.sum(status)/N)
+        aggregate.append(np.sum(energy))
+        average_energy.append(aggregate[i]/(active[i]*N))
+        saved.append(np.sum(np.asarray(increased_power) * np.asarray(dependent_nodes)))
+
 
     # animate the energy level of the network
     axes[0,0].clear()
@@ -175,79 +136,110 @@ def animate(i):
     axes[0,1].clear()
     nx.draw(G, nx.spring_layout(G, random_state=1), node_color=status, ax=axes[0,1], vmin=0, vmax=1, cmap="prism")
     axes[0,1].set_title("Status cells")
+    legend_elements = [Patch(facecolor='green', label='Active'), \
+                        Patch(facecolor='red', label='Inactive')]
+    axes[0,1].legend(handles=legend_elements, loc=0, borderaxespad=0.)
 
-    # animate solar production
+    # animate solar production in network
     axes[0,2].clear()
-    nx.draw(G, nx.spring_layout(G, random_state=1), node_color=prod, ax=axes[0,2], vmin=0, vmax=a_max*0.31831)
-    axes[0,2].set_title("Status cells")
+    nx.draw(G, nx.spring_layout(G, random_state=1), node_color=prod, ax=axes[0,2], vmin=0, vmax=a_max/steps_per_day)
+    axes[0,2].set_title("Energy production")
+
+    # animate number of active
+    ax_active.set_data(np.arange(i+1), active)
 
     # animate the sun
     ax_sun.set_data(np.arange(i), production[:i])
 
-    # animate
-    print("i = " + str(i))
-    print(len(np.arange(i+1)), len(active))
-    ax_active.set_data(np.arange(i+1), active)
+    # animate ratio P/C
+    ax_ratio.set_data(ratioPC[:i], average_energy[:i])
+    if i>3:
+        ax_ratio_red.set_data(ratioPC[i-2:i], average_energy[i-2:i])
 
-    fig.suptitle(i)
+    # animate saved cells
+    ax_saved.set_data(np.arange(i), saved[:i])
 
-    return ax_sun, ax_active
+    # animate energy distribution
+    ax_distributed.set_data(np.arange(i), allocated_power[:i])
+
+    # animate aggregate energy
+    ax_total_energy.set_data(np.arange(i), aggregate[:i])
+
+    return ax_sun, ax_active, ax_total_energy, ax_ratio, ax_ratio_red, ax_saved, ax_distributed
 
 if __name__ == "__main__":
 
-    # set parameters of the system
-    N = 50
-    days = 2
-    max_it = 30
-    init_power = 1
-    min_power = 1
-    a_max = 10 * 0.31831
-    a_min = 0
-    exp_alpha = (a_max+a_min)/2 * 0.31831
-    max_power = 2
-    p = 0.5
-    k = 4
+    # set independent variables of the system
+    N = 20                 # number of nodes in the network
+    days = 10               # number of days to simulate
+    max_it = 300            # amount of steps
+    init_power = 1          # initial energy for each node
+    min_power = 1           # minimal energy nodes keep for themselves, the rest is shared with the neighbors
+    max_power = 2           # maximum energy nodes can have
+    a_max = 10              # maxium alpha
+    a_min = 0               # minimum alpha
+    p = 0.5                 # probability of edge formation
+    k = 4                   #
+    share_energy = False    # whether nodes can share energy
 
+    # set dependent variables of the system
     dt = days / max_it
+    steps_per_day = max_it / days
+    exp_alpha = (a_max+a_min)/2
+    beta = exp_alpha / np.pi / steps_per_day
+    alphas = np.random.uniform(a_min, a_max, N) / steps_per_day
 
-    alphas = np.random.uniform(a_min, a_max, N)
+    # initialize a network
+    G = initialize(N,'random', init_power, alphas, dt, p=p)
 
-    G = initialize(N,'random', init_power, alphas, p=p)
+    # calculate the dependent nodes (alpha is less than beta)
+    dependent_nodes = [1 if G.node[node]['alpha'] > beta else 0 for node in G.nodes()]
 
+    # calculate value of sun
     steps = np.linspace(0, max_it*dt, num=max_it)
     production = np.clip(np.sin(2*np.pi*steps), a_min=0, a_max=None)
 
-    # ANIMATION
+    #############
+    # ANIMATION #
     save = False
     # initialize figure
     fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(13,8))
-    # fig.suptitle(f"Parameters:  N= {c.n**2},  Alpha ~ U[{c.alpha_min_per_day},{c.alpha_max_per_day}],  Beta = {round(c.beta_per_day,2)},  Max energy = {c.energy_max},\n  Min energy = {c.energy_min},  Max transfer = {c.max_transfer},  Cells can die = {c.cells_can_die},  Take panels if died = {c.take_panels_if_died}")
+    fig.suptitle(f"Parameters:  N= {N},  Alpha ~ U[{a_min},{a_max}],  Beta = {round(exp_alpha / np.pi,2)},  Max energy = {max_power},\n  Min energy = {min_power},  Transfer = {share_energy}")
 
     # Set days label for animation
     xtic = [x for x in range(max_it) if x % int(max_it / days) == 0]
     xlab = [d for d in range(days+1)]
 
-    fig.suptitle(0)
-
     # Energy levels on network
     nx.draw(G, nx.spring_layout(G, random_state=1), ax=axes[0,0], vmin=0, vmax=max_power)
     axes[0,0].set_title("Energy levels")
+    sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=0, vmax=max_power))
+    sm.set_array([])
+    fig.colorbar(sm, ax=axes[0,0])
 
     # Status of nodes
     nx.draw(G, nx.spring_layout(G, random_state=1), ax=axes[0,1], vmin=0, vmax=1, cmap="prism")
-    axes[0,1].set_title("Status cells")
+    axes[0,1].set_title("Status nodes")
+    legend_elements = [Patch(facecolor='green', label='Active'), \
+                        Patch(facecolor='red', label='Inactive')]
+    axes[0,1].legend(handles=legend_elements, loc=0, borderaxespad=0.)
 
     # Value of alpha on the grid as a function of the sun
-    nx.draw(G, nx.spring_layout(G, random_state=1), ax=axes[0,2], vmin=0, vmax=a_max)
+    nx.draw(G, nx.spring_layout(G, random_state=1), ax=axes[0,2], vmin=0, vmax=a_max/steps_per_day)
     axes[0,2].set_title("Energy production")
+    sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=0, vmax=a_max/steps_per_day))
+    sm.set_array([])
+    fig.colorbar(sm, ax=axes[0,2])
 
     # Total active cells
     axes[1,0].set_xlim([0, max_it])
     axes[1,0].set_ylim([0,1.05])
-    axes[1,0].set_title("Number of active nodes")
+    axes[1,0].set_title("Active nodes")
     ax_active, = axes[1,0].plot([],[])
-    axes[1,0].set_xlabel("Time")
+    axes[1,0].set_xlabel("Days")
     axes[1,0].set_ylabel("Active (%)")
+    axes[1,0].set_xticks(xtic)
+    axes[1,0].set_xticklabels(xlab)
 
     # Sun
     axes[1,1].set_xlim([0, max_it])
@@ -255,17 +247,61 @@ if __name__ == "__main__":
     ax_sun, = axes[1,1].plot([],[])
     axes[1,1].set_title("Sun")
     axes[1,1].set_xlabel("Days")
-    axes[1,1].set_ylabel(r"$\max(\sin(2\pi t,0)$")
+    axes[1,1].set_ylabel("Intensity")
     axes[1,1].set_xticks(xtic)
     axes[1,1].set_xticklabels(xlab)
 
-    plt.tight_layout(pad=1.0, w_pad=3.0, h_pad=1.0, rect=(0,0,1,0.92))
+    # Average energy per node as a function of the ratio P/C
+    axes[1,2].set_xlim([-0.1, exp_alpha/(exp_alpha/np.pi)])
+    axes[1,2].set_ylim([0, max_power*1.1])
+    ax_ratio, = axes[1,2].plot([],[])
+    ax_ratio_red, = axes[1,2].plot([],[], color='red', linewidth=3)
+    axes[1,2].set_title("Ratio")
+    axes[1,2].set_xlabel('P/C')
+    axes[1,2].set_ylabel('Average Energy per Node')
+
+    # Number of saved cells due to altruism
+    axes[2,0].set_xlim([0, max_it])
+    axes[2,0].set_ylim([0,N])
+    ax_saved, = axes[2,0].plot([],[])
+    axes[2,0].set_title("Saved cells by energy distribution")
+    axes[2,0].set_xlabel("Days")
+    axes[2,0].set_ylabel("Number of cells")
+    axes[2,0].set_xticks(xtic)
+    axes[2,0].set_xticklabels(xlab)
+
+    # Distributed energy
+    axes[2,1].set_xlim([0, max_it])
+    axes[2,1].set_ylim([0, 10])
+    ax_distributed, = axes[2,1].plot([],[])
+    axes[2,1].set_title("Energy distribution")
+    axes[2,1].set_xlabel("Days")
+    axes[2,1].set_ylabel("Energy")
+    axes[2,1].set_xticks(xtic)
+    axes[2,1].set_xticklabels(xlab)
+
+    # Total Energy level
+    axes[2,2].set_xlim([0, max_it])
+    axes[2,2].set_ylim([0, np.amax(N*max_power*1.1)])
+    ax_total_energy, = axes[2,2].plot([],[])
+    axes[2,2].set_title("Aggregate energy")
+    axes[2,2].set_xlabel("Days")
+    axes[2,2].set_ylabel("Energy")
+    axes[2,2].set_xticks(xtic)
+    axes[2,2].set_xticklabels(xlab)
+
+    plt.tight_layout(pad=1.0, w_pad=3.0, h_pad=2.0, rect=(0,0,1,0.92))
 
     # variables to record statistics
     active = []
+    aggregate = []
+    average_energy = []
+    ratioPC = []
+    saved = []
+    allocated_power = []
 
     # run the animation function
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, max_it), interval=1, blit=False)
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, max_it), interval=1, blit=False, repeat=False)
     plt.show()
 
     """
