@@ -8,7 +8,7 @@ from matplotlib import animation
 from copy import deepcopy
 from matplotlib.patches import Patch
 
-def initialize(N, cls, min_power, alphas, dt, p=0, k=0):
+def initialize(N, cls, min_power, alphas, p=0, k=0):
     if cls == 'random':
         G =  nx.erdos_renyi_graph(N, p)
     elif cls == 'watts':
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     alphas = np.random.uniform(a_min, a_max, N) / steps_per_day
 
     # initialize a network
-    G = initialize(N,'random', init_power, alphas, dt, p=p)
+    G = initialize(N,'random', init_power, alphas, p=p)
 
     # calculate the dependent nodes (alpha is less than beta)
     dependent_nodes = [1 if G.node[node]['alpha'] > beta else 0 for node in G.nodes()]
