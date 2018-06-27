@@ -3,6 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: page
+title: Home
 ---
 
 ## Welcome to our project page for the course Complex System Simulation (June, 2018)
