@@ -245,7 +245,7 @@ class CA(object):
         if self.cells_can_die:
             self.alpha[self.energy == 0] = 0
 
-def animate_CA():
+def animate_CA(c, save, jupyter = False):
     # run CA for ma
     for i in range(c.step_num_max-1):
         c.step()
@@ -270,7 +270,7 @@ def animate_CA():
     # animate the results
     # initialize figure
     fig = plt.figure(figsize=(13,8))
-    fig.suptitle(f"Parameters:  N= {c.n**2},  Alpha ~ U[{c.alpha_min_per_day},{c.alpha_max_per_day}],  Beta = {round(c.beta_per_day,2)},  Max energy = {c.energy_max},\n  Min energy = {c.energy_min},  Max transfer = {c.max_transfer},  Cells can die = {c.cells_can_die},  Take panels if died = {c.take_panels_if_died}")
+    fig.suptitle(f"Parameters:  N = {c.n**2},  Alpha ~ U[{c.alpha_min_per_day},{c.alpha_max_per_day}],  Beta = {round(c.beta_per_day,2)},  Max energy = {c.energy_max},\n  Min energy = {c.energy_min},  Max transfer = {c.max_transfer},  Cells can die = {c.cells_can_die},  Take panels if died = {c.take_panels_if_died}")
 
     data_figure = numpy.zeros(c.step_num_max)
     data_imshow = numpy.zeros((c.n-2, c.n-2))
@@ -324,7 +324,7 @@ def animate_CA():
     ax_sun, = ax5.plot(data_figure)
     ax5.set_title("Sun")
     ax5.set_xlabel("Days")
-    ax5.set_ylabel(r"$\max(\sin(2\pi t,0)$")
+    ax5.set_ylabel("Intensity")
     ax5.set_xticks(xtic)
     ax5.set_xticklabels(xlab)
 
@@ -338,7 +338,7 @@ def animate_CA():
     ax6.set_xlabel('P/C')
     ax6.set_ylabel('Average Energy per Node')
 
-    # Cells that died
+    # Cells status
     ax7 = plt.subplot(3,3,2)
     im_died = ax7.imshow(data_imshow, vmin=0, vmax=1, cmap="prism")
     ax7.set_title("Status cells")
@@ -411,6 +411,9 @@ def animate_CA():
         seconds = 30
         fps = c.step_num_max / seconds
         anim.save(f"results/CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+    elif jupyter:
+        # if jupyter notebook, display it the right way
+        return anim
     else:
         # if not save, then show the animation
         plt.show()
@@ -421,7 +424,7 @@ if __name__ == "__main__":
     # set potential production = potential consumption
     alpha_min = 0
     alpha_max = 10
-    beta = ((alpha_min + alpha_max) / 2) * 0.31831
+    beta = 2.0 * ((alpha_min + alpha_max) / 2) / numpy.pi
     # set number of steps
     max_step = 500
 
@@ -434,13 +437,13 @@ if __name__ == "__main__":
            alpha_max = alpha_max,
            beta = beta,
            energy_max = 1.59,
-           energy_min = 1.59,
-           max_transfer = 0,
+           energy_min = 1.20,
+           max_transfer = 10,
            cells_can_die = True,
            take_panels_if_died = False)
 
     # save animation if True
-    save = False
+    save = True
 
     # runs and animates the cellular automata
-    animate_CA()
+    animate_CA(c, save)
