@@ -14,4 +14,4 @@ In this project, we simulated a mars colony which is solely dependent on solar p
 
 The menu will guide you through the different topologies we used to simulate our electrical grids. There you will find all the results we obtained.
 
-Here you will our source code: <https://github.com/WavyV/Complex_System_Simulation>
+Here you will find our source code: <https://github.com/WavyV/Complex_System_Simulation>
