@@ -25,7 +25,7 @@ Python:
 
 ### Python:
 
-We used a class for the CA. When creating an instance, all input parameters must be specified: 
+After setting the input parameters, the cellular_automata.py file can be run executed to visualize some attributes of the system. We used a class for the CA: 
 
 ```python
 c = CA( n = 100,
