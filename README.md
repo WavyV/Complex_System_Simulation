@@ -1,13 +1,16 @@
-# Complex_System_Simulation
-Complex System Simulation - Solar-powered Electrical Grid
+# Complex System Simulation -- Solar-Powered Grid Simulation
 
-Overleaf: https://www.overleaf.com/17205912wqgjtnkbpyvg#/65631220/
+Welcome to the Solar-powered grid simulator. This model is build as a project for the Complex System Simulation course (June, 2018). Here we provide the basic elements to run and visualize your own solar-powered grid simulator.
 
-Website: https://wavyv.github.io/Complex_System_Simulation/
+We provide three topologies to play with:
 
-Youtube (Dimitri): https://www.youtube.com/playlist?list=PLq5YLqLQqDGN9smI9m2DzaxOU3DyvS7Qn
+- Mean-field approach
+- Network
+- Cellular automata
 
-Youtube (Walter): https://www.youtube.com/playlist?list=PLYGKT8n_T51NHXMde8I59YwIajTn1Xf66
+More information the model dynamics and analysis of some simulations is provided on our website: https://wavyv.github.io/Complex_System_Simulation/
+
+Below we provide instructions on how to handle the different model versions and files in this directory.
 
 # How to run the code
 
