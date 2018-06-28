@@ -39,7 +39,6 @@ class CA(object):
         self.n = n
         self.energy_max = energy_max
         self.energy_min = energy_min
-        self.max_transfer = max_transfer
 
         # Time
         self.t = 0
@@ -54,6 +53,7 @@ class CA(object):
         self.energy[1:n - 1, 1:n - 1] = energy_start
         self.energy_new_alloc = numpy.zeros([n, n])
         self.energy_new_prod = numpy.zeros([n, n])
+        self.max_transfer = max_transfer / self.step_per_day
 
         # Alpha
         self.alpha = numpy.zeros([n, n])
@@ -402,7 +402,7 @@ def animate_CA(c, save, jupyter = False):
 
         return im_energy, ax_active, im_alpha, ax_saved, ax_sun, ax_ratio, im_died, ax_distributed, ax_total_energy, ax_ratio_red
 
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, c.step_num_max), interval=1, blit=False)
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, c.step_num_max), interval=200, blit=False)
 
     if save:
         # define the number of seconds your video must be
@@ -424,26 +424,26 @@ if __name__ == "__main__":
     # set potential production = potential consumption
     alpha_min = 0
     alpha_max = 10
-    beta = 2.0 * ((alpha_min + alpha_max) / 2) / numpy.pi
+    beta = ((alpha_min + alpha_max) / 2) / numpy.pi
     # set number of steps
     max_step = 500
 
     # initialize CA
     c = CA(n = 50,
            days = 10,
-           max_step = 400,
+           max_step = max_step,
            energy_start = 1.59 / 2,
            alpha_min = alpha_min,
            alpha_max = alpha_max,
            beta = beta,
            energy_max = 1.59,
            energy_min = 1.20,
-           max_transfer = 10,
+           max_transfer = 2,
            cells_can_die = True,
            take_panels_if_died = False)
 
     # save animation if True
-    save = True
+    save = False
 
     # runs and animates the cellular automata
     animate_CA(c, save)

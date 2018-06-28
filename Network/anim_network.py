@@ -62,7 +62,7 @@ def update_power(G, max_power):
         G.node[node]['alloc'] = 0
     return G
 
-def use_power(G, beta):
+def use_power(G, beta, max_power):
     for node in G.nodes():
         if G.node[node]['power'] == 0:
             continue
@@ -84,23 +84,8 @@ def get_local_status(G):
 def init():
     pass
 
-def animate(i):
-    # set global variables
-    global G
-    global N
-    global beta
-    global exp_alpha
-    global max_power
-    global dependent_nodes
-    global production
-    global active
-    global aggregate
-    global average_energy
-    global ratioPC
-    global saved
-    global allocated_power
-    global share_energy
-
+def animate(i, G, N, beta, exp_alpha, max_power, dependent_nodes, production, active, aggregate, average_energy, ratioPC, saved, allocated_power, share_energy, min_power, ax_sun, ax_active, \
+    ax_total_energy, ax_ratio, ax_ratio_red, ax_saved, ax_distributed, max_it, a_max, a_min, steps_per_day):
     # run a step of simulation
     G = generate_power(G, production[i], max_power)
     G = send_power(G, min_power, share_energy)
@@ -111,7 +96,7 @@ def animate(i):
 
     # continue step of simulation
     G = update_power(G, max_power)
-    G = use_power(G, beta)
+    G = use_power(G, beta, max_power)
 
     # calculate values for animation
     energy = [G.node[node]['power'] for node in G.nodes()]
@@ -167,30 +152,32 @@ def animate(i):
 
     return ax_sun, ax_active, ax_total_energy, ax_ratio, ax_ratio_red, ax_saved, ax_distributed
 
-if __name__ == "__main__":
 
-    # set independent variables of the system
-    N = 20                 # number of nodes in the network
-    days = 10               # number of days to simulate
-    max_it = 300            # amount of steps
-    init_power = 1          # initial energy for each node
-    min_power = 1           # minimal energy nodes keep for themselves, the rest is shared with the neighbors
-    max_power = 2           # maximum energy nodes can have
-    a_max = 10              # maxium alpha
-    a_min = 0               # minimum alpha
-    p = 0.5                 # probability of edge formation
-    k = 4                   #
-    share_energy = False    # whether nodes can share energy
+def animate_network(N, days, max_it, init_power, min_power, max_power, a_max, a_min, network, p, k, share_energy, beta, save, jupyter = False):
+    # set global variables
+    global G
+    global production
+    global allocated_power
+    global exp_alpha
+    global ratioPC
+    global active
+    global aggregate
+    global average_energy
+    global saved
+    global dependent_nodes
+    global fig
+    global axes
 
-    # set dependent variables of the system
-    dt = days / max_it
-    steps_per_day = max_it / days
+
+    # set depedent variables
     exp_alpha = (a_max+a_min)/2
-    beta = exp_alpha / np.pi / steps_per_day
+    steps_per_day = max_it / days
+    dt = days / max_it
     alphas = np.random.uniform(a_min, a_max, N) / steps_per_day
 
     # initialize a network
-    G = initialize(N,'random', init_power, alphas, p=p)
+
+    G = initialize(N, network, init_power, alphas, p=p, k=k)
 
     # calculate the dependent nodes (alpha is less than beta)
     dependent_nodes = [1 if G.node[node]['alpha'] > beta else 0 for node in G.nodes()]
@@ -201,10 +188,11 @@ if __name__ == "__main__":
 
     #############
     # ANIMATION #
-    save = False
+    #############
+
     # initialize figure
     fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(13,8))
-    fig.suptitle(f"Parameters:  N= {N},  Alpha ~ U[{a_min},{a_max}],  Beta = {round(exp_alpha / np.pi,2)},  Max energy = {max_power},\n  Min energy = {min_power},  Transfer = {share_energy}")
+    fig.suptitle(f"Parameters:  N= {N},  Alpha ~ U[{a_min},{a_max}],  Beta = {round(exp_alpha / np.pi,2)},  Max energy = {max_power},\n  Min energy = {min_power},  Transfer = {share_energy}, network = {network}, p = {p}, k = {k}")
 
     # Set days label for animation
     xtic = [x for x in range(max_it) if x % int(max_it / days) == 0]
@@ -272,7 +260,7 @@ if __name__ == "__main__":
 
     # Distributed energy
     axes[2,1].set_xlim([0, max_it])
-    axes[2,1].set_ylim([0, 10])
+    axes[2,1].set_ylim([0, N * (max_power - min_power)])
     ax_distributed, = axes[2,1].plot([],[])
     axes[2,1].set_title("Energy distribution")
     axes[2,1].set_xlabel("Days")
@@ -301,18 +289,46 @@ if __name__ == "__main__":
     allocated_power = []
 
     # run the animation function
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, max_it), interval=1, blit=False, repeat=False)
-    plt.show()
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(0, max_it), interval=200, blit=False, repeat=False, fargs=(G, N, beta, exp_alpha, \
+    max_power, dependent_nodes, production, active, aggregate, average_energy, ratioPC, saved, allocated_power, share_energy, min_power, ax_sun, ax_active, \
+    ax_total_energy, ax_ratio, ax_ratio_red, ax_saved, ax_distributed, max_it, a_max, a_min, steps_per_day))
 
-    """
+    # whether to save or directly plot
     if save:
         # define the number of seconds your video must be
         now = datetime.datetime.now()
         print(f"Save as: network_animation_date:{now.day}_{now.hour}:{now.minute}.mp4")
         seconds = 30
-        fps = c.step_num_max / seconds
-        anim.save(f"results/CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+        fps = max_it / seconds
+        anim.save(f"results/network_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+    elif jupyter:
+        # if jupyter notebook, display it the right way
+        return anim
     else:
         # if not save, then show the animation
+        plt.show()
 
-    """
+if __name__ == "__main__":
+    # set independent variables of the system
+    N =  30                 # number of nodes in the network
+    days = 10               # number of days to simulate
+    max_it = 300            # amount of steps
+    init_power = 2          # initial energy for each node
+    min_power = 2           # minimal energy nodes keep for themselves, the rest is shared with the neighbors
+    max_power = 4           # maximum energy nodes can have
+    a_max = 10              # maxium alpha
+    a_min = 0               # minimum alpha
+    network = "barabasi"    # choose network: random, watts, barabasi, ring
+    p = 0.2                 # probability of edge formation
+    k = 2                  # set parameter for network initialization
+    share_energy = True     # whether nodes can share energy
+
+
+    # set dependent variables of the system
+    steps_per_day = max_it / days
+    beta = 1.5 * ((a_max+a_min)/2) / np.pi / steps_per_day
+
+    # whether to save the animation as a .mp4
+    save = True
+
+    animate_network(N, days, max_it, init_power, min_power, max_power, a_max, a_min, network, p, k, share_energy, beta, save, jupyter = False)
