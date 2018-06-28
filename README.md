@@ -28,7 +28,7 @@ Python:
 
 ### Python:
 
-After setting the input parameters, the cellular_automata.py file can be run executed to visualize some attributes of the system. We used a class for the CA:
+After setting the input parameters, the cellular_automata.py file can be executed to visualize some attributes of the system. We used a class for the CA:
 
 ```python
 c = CA( n = 100,
@@ -66,15 +66,15 @@ c.step()
 
 The results can be accessed by internal arrays of the instance:
 
-- STAT_alloc_energy: the sum of the allocated energy per step
-- STAT_alloc_panels: sum of reallocated panels
-- STAT_total_active: number of active cells
-- STAT_total_active_abs: absolute value of the previous variable
-- STAT_total_energy: total energy of the system
-- STAT_sun:
-- STAT_total_production: total production
-- STAT_total_consumption: total consumption
-- STAT_total_alpha: total production capacity
+- **STAT_alloc_energy**: the sum of the allocated energy per step
+- **STAT_alloc_panels**: sum of reallocated panels
+- **STAT_total_active**: number of active cells
+- **STAT_total_active_abs**: absolute value of the previous variable
+- **STAT_total_energy**: total energy of the system
+- **STAT_sun**: the intensity of the sun
+- **STAT_total_production**: total production
+- **STAT_total_consumption**: total consumption
+- **STAT_total_alpha**: total production capacity
 
 ### C++:
 
@@ -93,13 +93,13 @@ Then it can be executed by
 
 where
 
-- n: the resolution of the heatmap
-- CA_grid_size: grid size of the CA (N x N)
-- initial_energy: initial energy level
-- maximum_storage_capacity: maximum battery level
-- alpha_per_day_max: the algorthm iterates between beta/alpha = 0 to beta/alpha = alpha_per_day_max
-- days: number of days to simulate, with 50 steps per day
-- take_panels: reallocate solar panels or not
+- **n**: the resolution of the heatmap
+- **CA_grid_size**: grid size of the CA (N x N)
+- **initial_energy**: initial energy level
+- **maximum_storage_capacity**: maximum battery level
+- **alpha_per_day_max**: the algorthm iterates between beta/alpha = 0 to beta/alpha = alpha_per_day_max
+- **days**: number of days to simulate, with 50 steps per day
+- **take_panels**: reallocate solar panels or not
 
 # Website
 
