@@ -15,16 +15,29 @@ On this page we describe our approach of the model using an approximate mean-fie
 So let's take a look at these versions. 
 
 # Integer Version
-The number of 
-
-
-
-
-
-
+*To be added. This part contains quite some mathematics but GitHub pages does not provide math notation support, so we have to be creative here to make it somewhat readable.*
 
 
 # Sine Version
+We simulate the production of electricity with half a period of a sine function with amplitude A. The other half of the day, the production is zero, indicating it is night time. The consumption is constant at all times, set at C. See the figure below.
 
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/prod_cons_functions.png)
 
+The average amount of energy per node at time t, denoted <E(t)> is the average amount of energy per node at the previous time step plus the result of production minus consumption at the current time step. 
 
+The total production must equal the total consumption to reach a limit cycle. In that case the integral over one day (which is one period) over the production must equal the integral over the same period for the consumption. For the functions we have chose, we find that the total production is A/pi. If consumption is equal to this, we find a limit cycle. If it is less, nodes will will experience electricity shortage and if consumption is higher, the amount of energy will keep rising. This is shown in the animations below. 
+
+Production equals consumption.
+<iframe width="560" height="315" src="https://youtu.be/SkG6L0Pgsqc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+
+Consumption is less than production.
+<iframe width="560" height="315" src="https://youtu.be/MlCKcaE2XBo" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+
+Consumption is more than production.
+<iframe width="560" height="315" src="https://youtu.be/ZZ1x-JXrv7U" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+
+To see the effect of the maximum battery capacity we can set the capacity such that the batteries will be completely filled during the day. If the capacity is too low, the nodes may not survive the night. 
+
+<iframe width="560" height="315" src="https://youtu.be/M6HUZ-9DL4s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+
+We have investigated the dynamics of this simple model version and gotten a feel for how the model behaves. This will help us understand the more complicated dynamics observed for the more advanced cellular automata and network model implementations. 
