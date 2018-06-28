@@ -192,7 +192,8 @@ def animate_network(N, days, max_it, init_power, min_power, max_power, a_max, a_
 
     # initialize figure
     fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(13,8))
-    fig.suptitle(f"Parameters:  N= {N},  Alpha ~ U[{a_min},{a_max}],  Beta = {round(exp_alpha / np.pi,2)},  Max energy = {max_power},\n  Min energy = {min_power},  Transfer = {share_energy}, network = {network}, p = {p}, k = {k}")
+    fig.suptitle("Parameters:  N= %d,  Alpha ~ U[%d,%d],  Beta = %.4f,  Max energy = %d,\n  Min energy = %d,  Transfer = %s, network = %s, p = %.3f, k = %d" \
+    	% (N, a_min, a_max, round(exp_alpha / np.pi,2), max_power, min_power, str(share_energy), network, p, k) )
 
     # Set days label for animation
     xtic = [x for x in range(max_it) if x % int(max_it / days) == 0]
@@ -297,10 +298,10 @@ def animate_network(N, days, max_it, init_power, min_power, max_power, a_max, a_
     if save:
         # define the number of seconds your video must be
         now = datetime.datetime.now()
-        print(f"Save as: network_animation_date:{now.day}_{now.hour}:{now.minute}.mp4")
+        print("Save as: network_animation_date:%s_%s:%s.mp4" % (now.day, now.hour, now.minute) )
         seconds = 30
         fps = max_it / seconds
-        anim.save(f"results/network_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+        anim.save("results/network_animation_date:%s_%s:%s.mp4"  % (now.day, now.hour, now.minute), fps=fps)
     elif jupyter:
         # if jupyter notebook, display it the right way
         return anim
