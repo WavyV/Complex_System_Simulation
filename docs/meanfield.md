@@ -38,6 +38,6 @@ Consumption is more than production.
 
 To see the effect of the maximum battery capacity we can set the capacity such that the batteries will be completely filled during the day. If the capacity is too low, the nodes may not survive the night. 
 
-<iframe width="560" height="315" src="https://youtu.be/M6HUZ-9DL4s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=M6HUZ-9DL4s&t=0s&index=2&list=PLYGKT8n_T51NHXMde8I59YwIajTn1Xf66" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
 
 We have investigated the dynamics of this simple model version and gotten a feel for how the model behaves. This will help us understand the more complicated dynamics observed for the more advanced cellular automata and network model implementations. 
