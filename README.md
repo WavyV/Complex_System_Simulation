@@ -31,7 +31,7 @@ Python:
 
 ### C++:
 
-This program iterates through different alpha/beta and altruism levels and writes some properties (living cells, number of clusters, size of the largest cluster and the total energy level) of the CA to files. 
+This multi threaded application iterates through different alpha/beta and altruism levels and writes some properties (living cells, number of clusters, size of the largest cluster and the total energy level) of the CA to files. 
 To run the C++ implementation of the CA, one must compile it first (three files: main.cpp, CA.h and CA.cpp). Any compiler can be used, but the std::thread library must be included. For example, in Linux:
 
 g++ main.cpp CA.h CA.cpp -lpthread -o PROGRAM_NAME
