@@ -55,6 +55,24 @@ where
 
 All input parameters have default values, and are measured for a day. (The program converts these quantities for time steps. )
 
+After inicializing the CA, one must run it step by step by 
+
+```python
+c.step()
+```
+
+The results can be accessed by internal arrays of the instance: 
+
+- STAT_alloc_energy: the sum of the allocated energy per step
+- STAT_alloc_panels: sum of reallocated panels
+- STAT_total_active: number of active cells
+- STAT_total_active_abs: absolute value of the previous variable
+- STAT_total_energy: total energy of the system
+- STAT_sun: 
+- STAT_total_production: total production
+- STAT_total_consumption: total consumption
+- STAT_total_alpha: total production capacity
+
 ### C++:
 
 This multi threaded application iterates through different alpha/beta and altruism levels and writes some properties (living cells, number of clusters, size of the largest cluster and the total energy level) of the CA to files. 
