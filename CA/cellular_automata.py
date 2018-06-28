@@ -270,7 +270,9 @@ def animate_CA(c, save, jupyter = False):
     # animate the results
     # initialize figure
     fig = plt.figure(figsize=(13,8))
-    fig.suptitle(f"Parameters:  N = {c.n**2},  Alpha ~ U[{c.alpha_min_per_day},{c.alpha_max_per_day}],  Beta = {round(c.beta_per_day,2)},  Max energy = {c.energy_max},\n  Min energy = {c.energy_min},  Max transfer = {c.max_transfer},  Cells can die = {c.cells_can_die},  Take panels if died = {c.take_panels_if_died}")
+    fig.suptitle("""Parameters:  N = %.3f,  Alpha ~ U[%3.f,%.3f],  Beta = %.3f,  Max energy = %.3f,\n  
+                    Min energy = %.3f,  Max transfer = %.3f,  Cells can die = %s,  Take panels if dead = %s""" \
+                    % (c.n**2, c.alpha_min_per_day, c.alpha_max_per_day, round(c.beta_per_day,2), c.energy_max, c.energy_min, c.max_transfer, c.cells_can_die, c.take_panels_if_died ))
 
     data_figure = numpy.zeros(c.step_num_max)
     data_imshow = numpy.zeros((c.n-2, c.n-2))
@@ -407,10 +409,10 @@ def animate_CA(c, save, jupyter = False):
     if save:
         # define the number of seconds your video must be
         now = datetime.datetime.now()
-        print(f"Save as: CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4")
+        print("Save as: network_animation_date:%s_%s:%s.mp4" % (now.day, now.hour, now.minute) )
         seconds = 30
         fps = c.step_num_max / seconds
-        anim.save(f"results/CA_animation_date:{now.day}_{now.hour}:{now.minute}.mp4", fps=fps)
+        anim.save("results/network_animation_date:%s_%s:%s.mp4"  % (now.day, now.hour, now.minute), fps=fps)
     elif jupyter:
         # if jupyter notebook, display it the right way
         return anim

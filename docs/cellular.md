@@ -15,7 +15,7 @@ Our cellular automaton consists of cells that are arranged in a 2-dimensional gr
 - The number of living neighbors (different for each cell). Based on the location of a cell, it can have 2-4 neighbors.
 
 In every time step, each living cell:
-1. Produces energy based on the unique production function and time, namely A*sin(2*pi*x), where x = fraction(t).
+1. Produces energy based on the unique production function and time, namely A * sin (2 * pi * t), where x = fraction(t).
 2. If the energy exceeds a predetermined level, it evenly allocates this surplus among its direct neighbors. If it has 4 neighbors, each gets 25% of the surplus, if it has 3 neighbors, each gets 33.33% of the surplus, etc. Energy level can't exceed the storage capacity.
 3. The cells consume energy. If a cell runs out of energy, it dies.
 4. If a cell dies, its direct neighbors evenly share its solar panels and use it later for production. We found that there is no big difference between the two approaches because cells die at night when they can't use the additional panels.
