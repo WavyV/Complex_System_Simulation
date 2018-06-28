@@ -34,29 +34,19 @@ To study this system, we implemented the CA in Python and in C++ and experimente
 # Results
 The results which are presented below, reveal some interesting properties of the system. (Dead cells are marked with red.) If the average production exceeds the consumption, the level of altruism increases the number of living cells. But, if the expected production is close to the consumption, at a very high altruism level, we find fewer cells alive than at a lower level of altruism. By further increasing selfishness, we cause a huge drop in the number of survivals. 
 
-![](living.png) 
+![](https://github.com/WavyV/Complex_System_Simulation/blob/master/docs/living.png) 
 
 Selfishness generally increases the number of clusters but decreases their size. A higher production rate decreases the number as well, as it increases the cluster size at the same time.
 
-![](numshape.png)
-![](maxsize.png)
+![](https://github.com/WavyV/Complex_System_Simulation/blob/master/docs/numshape.png)
+![](https://github.com/WavyV/Complex_System_Simulation/blob/master/docs/maxsize.png)
 
 If production is more than consumption, the average energy per cell is maximized at a when the cells are a little selfish. 
-![](energy_per_living.png )
+![](https://github.com/WavyV/Complex_System_Simulation/blob/master/docs/energy_per_living.png )
 
+Several experiments have been carried out to further analyze the system. For example, when energy transfer is not possible between the cells (low altruism):
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hJNIZXPl8lA?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/lQolYLWnwS8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+And when it is possible:
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OOr81651dGo?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
