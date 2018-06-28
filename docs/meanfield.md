@@ -15,7 +15,17 @@ On this page we describe our approach of the model using an approximate mean-fie
 So let's take a look at these versions. 
 
 # Integer Version
-*To be added. This part contains quite some mathematics but GitHub pages does not provide math notation support, so we have to be creative here to make it somewhat readable.*
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/pmeanfield_1.png)
+
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/brownian_motion_meanfield.png)
+
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/meanfield_2.png)
+
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/deltaE_norm_dits.png)
+
+When the system size is increased we find that the standard deviation of the distribution above decreases. This is shown in the figure below. 
+
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/loglog_sigma_deltaE.png)
 
 
 # Sine Version
