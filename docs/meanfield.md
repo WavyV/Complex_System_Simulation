@@ -28,16 +28,16 @@ The average amount of energy per node at time t, denoted <E(t)> is the average a
 The total production must equal the total consumption to reach a limit cycle. In that case the integral over one day (which is one period) over the production must equal the integral over the same period for the consumption. For the functions we have chose, we find that the total production is A/pi. If consumption is equal to this, we find a limit cycle. If it is less, nodes will will experience electricity shortage and if consumption is higher, the amount of energy will keep rising. This is shown in the animations below. 
 
 Production equals consumption.
-<iframe width="560" height="315" src="https://youtu.be/SkG6L0Pgsqc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/SkG6L0Pgsqc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Consumption is less than production.
-<iframe width="560" height="315" src="https://youtu.be/MlCKcaE2XBo" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MlCKcaE2XBo" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Consumption is more than production.
-<iframe width="560" height="315" src="https://youtu.be/ZZ1x-JXrv7U" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ZZ1x-JXrv7U" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 To see the effect of the maximum battery capacity we can set the capacity such that the batteries will be completely filled during the day. If the capacity is too low, the nodes may not survive the night. 
 
-<iframe width="560" height="315" src="https://www.youtube.com/watch?v=M6HUZ-9DL4s&t=0s&index=2&list=PLYGKT8n_T51NHXMde8I59YwIajTn1Xf66" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M6HUZ-9DL4s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 We have investigated the dynamics of this simple model version and gotten a feel for how the model behaves. This will help us understand the more complicated dynamics observed for the more advanced cellular automata and network model implementations. 
