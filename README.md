@@ -19,14 +19,42 @@ Python:
 
 ## Network
 
-Python:
+### Python
 
+To run and visualize a simulation of the network-based grid, use the anim_network.py file.
 
+```python
+N = 30  
+days = 10
+max_it = 300  
+init_power = 2  
+min_power = 2  
+max_power = 4   
+a_max = 10             
+a_min = 0              
+network = "barabasi"
+p = 0.2       
+k = 2
+share_energy = True    
+```
+where
+- **N** is the number of nodes in the network;
+- **days** is the number of days to simulate;
+- **max_it** is the amount steps for the whole simulation;
+- **init_power** is the initial energy of each node;
+- **min_power** is minimal energy nodes keep for themselves;
+- **max_power** is the maximum capacity of each node;
+- **a_max** is the maximum alpha (aka solar panels);
+- **a_min** is the minimum alpha;
+- **network** specifies the type of network to use;
+- **p** and **k** are parameters for the specified;
+- **share_energy** defines if nodes can share electricity
 
+To save your animation, you can set the **save** variable to True. If False, then the animation will be plotted.
 
 ## Cellular Automata
 
-### Python:
+### Python
 
 After setting the input parameters, the cellular_automata.py file can be executed to visualize some attributes of the system. We used a class for the CA:
 
@@ -56,9 +84,11 @@ where
 - **cells_can_die** let the nodes die and
 - **take_panels_if_died** indicates, whether the panels are reallocated between the neighbours after a cell runs out of energy.
 
+To save your animation, you can set the **save** variable to True. If False, then the animation will be plotted.
+
 All input parameters have default values, and are measured for a day. (The program converts these quantities for time steps. )
 
-After inicializing the CA, one must run it step by step by
+After initializing the CA, one must run it step by step by
 
 ```python
 c.step()
