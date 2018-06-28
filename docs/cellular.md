@@ -36,8 +36,8 @@ The results which are presented below, reveal some interesting properties of the
 
 Selfishness generally increases the number of clusters but decreases their size. A higher production rate decreases the number as well, as it increases the cluster size at the same time.
 
-![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/blob/master/docs/numshape.png)
-![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/blob/master/docs/maxsize.png)
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/numshape.png)
+![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/maxsize.png)
 
 If production is more than consumption, the average energy per cell is maximized at a when the cells are a little selfish.
 ![placeholder](https://raw.githubusercontent.com/WavyV/Complex_System_Simulation/master/docs/energy_per_living.png)
