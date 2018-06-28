@@ -15,7 +15,20 @@ In each directory, you will find the necessary files to execute your own simulat
 
 ## Mean-field
 
-Python:
+### Python
+
+The simplest way to play around with the mean-field version is to use the Jupyter Notebook. You can set the independent variables of the model to your liking. These are: 
+
+```python
+N = 50                  # Number of nodes
+max_it = 500            # Number of iterations
+init_value = 5          # Initial value for all nodes
+a = 1                   # Amplitude sine function
+c = a / np.pi           # Constant consumption value
+dt = 0.01               # Integration step
+max_power = 12          # Battery Capacity
+```
+Additional information on interesting parameter settings are provided in the Jupyter Notebook and on the website. 
 
 ## Network
 
