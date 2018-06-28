@@ -31,7 +31,7 @@ To study this system, we implemented the CA in Python and in C++ and experimente
 - Each cell has a unique production function A*sin(2*pi*t) where A follows the uniform distribution between 0 and 20.
 
 
-# Results 2
+# Results
 The results which are presented below, reveal some interesting properties of the system. (Dead cells are marked with red.) If the average production exceeds the consumption, the level of altruism increases the number of living cells. But, if the expected production is close to the consumption, at a very high altruism level, we find fewer cells alive than at a lower level of altruism. By further increasing selfishness, we cause a huge drop in the number of survivals.
 
 ![placeholder](https://drive.google.com/open?id=1org62hQJzVhVHtuZ3SipUSSZb4irxkQ9)
