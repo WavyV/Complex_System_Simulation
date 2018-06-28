@@ -25,9 +25,35 @@ Python:
 
 ### Python:
 
-- Open cellular_automata.py
-- Set the preferred parameters
-- Execute the code
+We used a class for the CA. When creating an instance, all input parameters must be specified: 
+
+```python
+c = CA( n = 100,
+        days = 7,
+        max_step = 1000,
+        energy_start = 100,
+        alpha_min = 0,
+        alpha_max = 1,
+        beta = 1,
+        energy_max = 10,
+        energy_min = 10,
+        max_transfer = 10,
+        cells_can_die = True,
+        take_panels_if_died = False):
+```
+where 
+- n is the size of the grid (n-by-n), 
+- days indicate the length of the time interval, 
+- max_step is the maximum number of steps, energy_start is the initial energy level, 
+- alpha_min and alpha_max denote the minimum and maximum level of production, 
+- beta is the consumption, 
+- energy_min inidicates the level above which the surplus is shared, 
+- energy_max is the maximum capacity of the batteries, 
+- max_transfer is the maximum energy transfer, 
+- cells_can_die let the nodes die and 
+- take_panels_if_died indicates, whether the panels are reallocated between the neighbours after a cell runs out of energy. 
+
+All input parameters have default values, and are measured for a day. (The program converts these quantities for time steps. )
 
 ### C++:
 
